@@ -6,8 +6,9 @@ export const HANDWRITING_FONTS = [
     category: 'Doğal & Akıcı',
     tag: 'Önerilen',
     turkish: true,
-    sample: 'Merhaba dünya, bugün harika bir gün.',
-    description: 'En popüler, doğal ritimli ve tam Türkçe destekli el yazısı.',
+    languages: ['tr', 'en', 'de', 'es', 'fr', 'ru'],
+    sample: 'Merhaba dünya • The quick brown fox • Guten Tag',
+    description: 'En popüler, doğal ritimli ve tam Türkçe/Latin/Kiril destekli el yazısı.',
     defaultScale: 1.15
   },
   {
@@ -17,7 +18,8 @@ export const HANDWRITING_FONTS = [
     category: 'Tükenmez Kalem',
     tag: 'Günlük',
     turkish: true,
-    sample: 'Önemli notlar ve günlük düşünceler.',
+    languages: ['tr', 'en', 'de', 'es', 'fr'],
+    sample: 'Önemli notlar ve günlük düşünceler • Meeting notes.',
     description: 'Temiz, düzenli ve samimi tükenmez kalem hissi.',
     defaultScale: 1.0
   },
@@ -28,7 +30,8 @@ export const HANDWRITING_FONTS = [
     category: 'Dolma Kalem',
     tag: 'Zarif',
     turkish: true,
-    sample: 'Sevgili günlük, hatıralar kalır...',
+    languages: ['tr', 'en', 'de', 'es', 'fr', 'ru'],
+    sample: 'Sevgili günlük, hatıralar kalır • Dear Diary...',
     description: 'Geleneksel dolma kalemle yazılmış mektup ve anı estetiği.',
     defaultScale: 1.05
   },
@@ -39,9 +42,58 @@ export const HANDWRITING_FONTS = [
     category: 'Keçeli Kalem',
     tag: 'Okunaklı',
     turkish: true,
+    languages: ['tr', 'en', 'de', 'es', 'fr'],
     sample: 'Hızlıca alınan pratik ders notları.',
     description: 'Son derece okunaklı, dik ve düzenli öğrenci notu tarzı.',
     defaultScale: 1.05
+  },
+  {
+    id: 'aref',
+    name: 'Aref Ruqaa',
+    fontFamily: "'Aref Ruqaa', serif",
+    category: 'Arapça Kaligrafi',
+    tag: 'العربية',
+    turkish: false,
+    languages: ['ar'],
+    sample: 'نص حكيم له سر قاطع وذو شأن عظيم',
+    description: 'Doğal kamış kalem hissi veren geleneksel rık\'a el yazısı.',
+    defaultScale: 1.2
+  },
+  {
+    id: 'reem',
+    name: 'Reem Kufi Ink',
+    fontFamily: "'Reem Kufi Ink', sans-serif",
+    category: 'Arapça Mürekkep',
+    tag: 'العربية',
+    turkish: false,
+    languages: ['ar'],
+    sample: 'خواطر وأفكار في دفتر الذكريات',
+    description: 'Modern mürekkepli kalemle yazılmış Arapça el yazısı.',
+    defaultScale: 1.15
+  },
+  {
+    id: 'yomogi',
+    name: 'Yomogi',
+    fontFamily: "'Yomogi', cursive",
+    category: 'Japonca El Yazısı',
+    tag: '日本語',
+    turkish: false,
+    languages: ['ja'],
+    sample: '日常の小さな気づきと大切な日記。',
+    description: 'Sıcak ve samimi Japonca defter el yazısı (Kanji/Kana).',
+    defaultScale: 1.0
+  },
+  {
+    id: 'klee',
+    name: 'Klee One',
+    fontFamily: "'Klee One', cursive",
+    category: 'Japonca Kalem',
+    tag: '日本語',
+    turkish: false,
+    languages: ['ja'],
+    sample: '静かな夜にペンを走らせる心地よさ。',
+    description: 'Japon ders kitapları ve kurşun kalem estetiğinde zarif yazı.',
+    defaultScale: 1.0
   },
   {
     id: 'shadows',
@@ -50,6 +102,7 @@ export const HANDWRITING_FONTS = [
     category: 'Modern Kişisel',
     tag: 'Karakterli',
     turkish: false,
+    languages: ['en', 'de', 'es', 'fr'],
     sample: 'Creative thoughts & modern diary.',
     description: 'Keskin hatlı, modern ve karakteristik serbest el yazısı.',
     defaultScale: 1.0
@@ -61,7 +114,8 @@ export const HANDWRITING_FONTS = [
     category: 'Serbest Ruh',
     tag: 'Neşeli',
     turkish: false,
-    sample: 'Özgür düşünceler ve sıcak fikirler.',
+    languages: ['en'],
+    sample: 'Free thoughts and warm ideas.',
     description: 'Yuvarlak hatlı, tasasız ve sıcak el yazısı.',
     defaultScale: 0.95
   },
@@ -72,7 +126,8 @@ export const HANDWRITING_FONTS = [
     category: 'Mimar & Eskiz',
     tag: 'Teknik',
     turkish: false,
-    sample: 'Plan 01: Tasarım eskizleri ve detaylar.',
+    languages: ['en'],
+    sample: 'Plan 01: Design sketches & blueprints.',
     description: 'Teknik çizim ve mimari eskiz defteri stili.',
     defaultScale: 0.95
   },
@@ -83,7 +138,8 @@ export const HANDWRITING_FONTS = [
     category: 'Kaligrafi',
     tag: 'Süslü',
     turkish: true,
-    sample: 'Duyguların kağıda dökülüşü...',
+    languages: ['tr', 'en', 'de', 'es', 'fr'],
+    sample: 'Duyguların kağıda dökülüşü • Pure Elegance',
     description: 'Kıvrımlı, ritmik ve romantik kaligrafik el yazısı.',
     defaultScale: 1.1
   },
@@ -94,7 +150,8 @@ export const HANDWRITING_FONTS = [
     category: 'Hızlı Karalama',
     tag: 'İnce Uç',
     turkish: false,
-    sample: 'Unutma: yarın sabah saat 09:00 toplantı!',
+    languages: ['en'],
+    sample: 'Quick thoughts: meeting tomorrow at 9 AM!',
     description: 'İnce uçlu tükenmezle aceleyle karalanmış notlar.',
     defaultScale: 1.25
   },
@@ -105,7 +162,8 @@ export const HANDWRITING_FONTS = [
     category: 'Fosforlu / Kalın',
     tag: 'Vurgulu',
     turkish: false,
-    sample: 'Büyük fikirler küçük notlarla başlar.',
+    languages: ['en'],
+    sample: 'Big ideas start with small notes.',
     description: 'Tahta kalemi veya kalın keçeli uçlu enerjik yazı.',
     defaultScale: 0.9
   }

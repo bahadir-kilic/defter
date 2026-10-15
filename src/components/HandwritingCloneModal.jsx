@@ -3,21 +3,17 @@ import {
   processHandwritingImage, 
   analyzeHandwritingWithAI 
 } from '../services/handwritingCloner';
+import { useTranslation } from '../i18n/LanguageContext';
 import { 
   Sparkles, 
   Upload, 
-  Camera, 
   Check, 
   X, 
   Sliders, 
-  FileCheck, 
-  AlertCircle, 
-  RefreshCw, 
-  ArrowRight, 
   HelpCircle,
-  Eye,
   CheckCircle2,
-  Cpu
+  Cpu,
+  ArrowRight
 } from 'lucide-react';
 
 export function HandwritingCloneModal({
@@ -26,7 +22,8 @@ export function HandwritingCloneModal({
   onApplyClonedFont,
   existingClonedProfile
 }) {
-  const [step, setStep] = useState(1); // 1: Upload, 2: Processing, 3: Tuning & Testing
+  const { t, langCode, currentLang } = useTranslation();
+  const [step, setStep] = useState(1);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [processedPreview, setProcessedPreview] = useState(null);
@@ -42,22 +39,27 @@ export function HandwritingCloneModal({
   });
   const [analysisResult, setAnalysisResult] = useState(null);
 
-  // Test pad text
-  const [testText, setTestText] = useState('Merhaba, bu benim taranmış ve klonlanmış kendi el yazımdır. Klavyeden yazdıkça harflerim kağıda dökülüyor.');
+  // Test pad text based on current language
+  const [testText, setTestText] = useState(() => t('pangram'));
+
+  useEffect(() => {
+    setTestText(t('pangram'));
+  }, [langCode, t]);
 
   const fileInputRef = useRef(null);
 
-  // Pre-calibrated samples for instant testing
+  // Pre-calibrated demo samples adapted to active language
+  const currentPangram = t('pangram');
   const SAMPLE_HANDWRITINGS = [
     {
-      name: 'Örnek 1: Samimi Günlük El Yazısı',
-      preview: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="200" viewBox="0 0 600 200"><rect width="100%" height="100%" fill="%23f7f4ec"/><text x="40" y="80" font-family="Caveat, cursive" font-size="34" fill="%231e3a8a">Pijamalı hasta yağız şoföre çabucak güvendi.</text><text x="40" y="140" font-family="Caveat, cursive" font-size="34" fill="%231e3a8a">Bugün harika bir fikir aklıma geldi, satırlara döküyorum...</text></svg>',
+      name: langCode === 'tr' ? 'Örnek 1: Samimi Günlük El Yazısı' : 'Sample 1: Warm Casual Handwriting',
+      preview: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="200" viewBox="0 0 600 200"><rect width="100%" height="100%" fill="%23f7f4ec"/><text x="40" y="80" font-family="Caveat, cursive" font-size="30" fill="%231e3a8a">${encodeURIComponent(currentPangram.slice(0, 35))}</text><text x="40" y="140" font-family="Caveat, cursive" font-size="30" fill="%231e3a8a">Scriptor handwriting cloning pipeline active.</text></svg>`,
       slant: 4.0,
       strokeWidth: 2.3
     },
     {
-      name: 'Örnek 2: Mimar & Düzenli Not Yazısı',
-      preview: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="200" viewBox="0 0 600 200"><rect width="100%" height="100%" fill="%23ffffff"/><text x="40" y="80" font-family="Kalam, cursive" font-size="30" fill="%2318181b">Pijamalı hasta yağız şoföre çabucak güvendi.</text><text x="40" y="140" font-family="Kalam, cursive" font-size="30" fill="%2318181b">Plan 01: Tasarım eskizleri ve detaylar eksiksiz tamamlandı.</text></svg>',
+      name: langCode === 'tr' ? 'Örnek 2: Mimar & Düzenli Not Yazısı' : 'Sample 2: Clean Architectural Script',
+      preview: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="200" viewBox="0 0 600 200"><rect width="100%" height="100%" fill="%23ffffff"/><text x="40" y="80" font-family="Kalam, cursive" font-size="28" fill="%2318181b">${encodeURIComponent(currentPangram.slice(0, 35))}</text><text x="40" y="140" font-family="Kalam, cursive" font-size="28" fill="%2318181b">Plan 01: Geometric calibration completed.</text></svg>`,
       slant: 1.5,
       strokeWidth: 2.6
     }
@@ -91,23 +93,20 @@ export function HandwritingCloneModal({
     if (!imagePreview) return;
     setStep(2);
     setProgressPercent(15);
-    setProcessingStage('Görsel taranıyor ve kağıt gölgeleri filtreleniyor...');
+    setProcessingStage('Vision preprocessing & paper background filtering...');
 
     try {
-      // Step A: Image binarization & contour isolation
       await new Promise(r => setTimeout(r, 600));
       setProgressPercent(40);
-      setProcessingStage('Otsu adaptif binarizasyon ile mürekkep lifleri ayrıştırılıyor...');
+      setProcessingStage('Adaptive Otsu thresholding isolating ink strokes...');
 
       const processed = await processHandwritingImage(imagePreview);
       setProcessedPreview(processed.previewUrl);
 
-      // Step B: Slant, stroke & metrics estimation
       await new Promise(r => setTimeout(r, 600));
       setProgressPercent(75);
-      setProcessingStage('Bézier eğrileri, harf eğimi ve satır tabanı (baseline) ölçülüyor...');
+      setProcessingStage('Bézier curve mapping, slant calculation & baseline lock...');
 
-      // Step C: AI Analysis
       const apiKey = localStorage.getItem('scriptor_gemini_key') || '';
       const analysis = await analyzeHandwritingWithAI({
         imageBase64: processed.previewUrl,
@@ -124,12 +123,12 @@ export function HandwritingCloneModal({
       setAnalysisResult(analysis);
 
       setProgressPercent(100);
-      setProcessingStage('Kalibrasyon tamamlandı!');
+      setProcessingStage('Calibration Complete!');
 
       await new Promise(r => setTimeout(r, 400));
       setStep(3);
     } catch (err) {
-      alert('İşleme sırasında hata oluştu: ' + err.message);
+      alert('Error: ' + err.message);
       setStep(1);
     }
   };
@@ -137,10 +136,10 @@ export function HandwritingCloneModal({
   const handleSaveAndActivate = () => {
     const profile = {
       id: 'cloned-personal-font',
-      name: 'Kendi El Yazım (Bireysel Klon)',
+      name: t('clonedFontActive'),
       isCloned: true,
-      fontFamily: "'Caveat', cursive", // Base engine with calibrated metrics
-      createdAt: new Date().toLocaleDateString('tr-TR'),
+      fontFamily: (langCode === 'ar' ? "'Aref Ruqaa', serif" : (langCode === 'ja' ? "'Yomogi', cursive" : "'Caveat', cursive")),
+      createdAt: new Date().toLocaleDateString(currentLang.locale),
       metrics,
       previewUrl: processedPreview
     };
@@ -151,7 +150,7 @@ export function HandwritingCloneModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-stone-900/65 backdrop-blur-md animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-stone-900/65 backdrop-blur-md animate-in fade-in duration-200" dir={currentLang.dir}>
       <div className="w-full max-w-3xl bg-[#FAF8F5] rounded-2xl shadow-2xl border border-stone-300 overflow-hidden flex flex-col max-h-[92vh]">
         
         {/* Modal Header */}
@@ -162,13 +161,13 @@ export function HandwritingCloneModal({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold font-serif">One-Shot Handwriting Clone</h2>
+                <h2 className="text-base font-bold font-serif">{t('cloneTitle')}</h2>
                 <span className="text-[10px] font-mono uppercase bg-amber-400/25 text-amber-200 px-2 py-0.5 rounded-full border border-amber-400/40">
-                  AI Destekli Bireysel Font Stüdyosu
+                  {currentLang.flag} {t('cloneBadge')}
                 </span>
               </div>
               <p className="text-xs text-amber-100/70">
-                Kağıda yazdığınız 1 paragraftan kendi benzersiz el yazınızı klonlayın
+                {t('cloneSubtitle')}
               </p>
             </div>
           </div>
@@ -184,17 +183,17 @@ export function HandwritingCloneModal({
         <div className="px-6 py-2.5 bg-stone-100 border-b border-stone-200 flex items-center justify-between text-xs font-medium text-stone-600">
           <div className={`flex items-center gap-1.5 ${step === 1 ? 'text-amber-900 font-bold' : ''}`}>
             <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[11px] ${step === 1 ? 'bg-amber-800 text-white' : 'bg-stone-300 text-stone-700'}`}>1</span>
-            <span>Örnek Fotoğraf</span>
+            <span>{t('step1')}</span>
           </div>
           <span className="text-stone-300">───</span>
           <div className={`flex items-center gap-1.5 ${step === 2 ? 'text-amber-900 font-bold' : ''}`}>
             <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[11px] ${step === 2 ? 'bg-amber-800 text-white' : 'bg-stone-300 text-stone-700'}`}>2</span>
-            <span>Vision & Binarizasyon</span>
+            <span>{t('step2')}</span>
           </div>
           <span className="text-stone-300">───</span>
           <div className={`flex items-center gap-1.5 ${step === 3 ? 'text-amber-900 font-bold' : ''}`}>
             <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[11px] ${step === 3 ? 'bg-amber-800 text-white' : 'bg-stone-300 text-stone-700'}`}>3</span>
-            <span>Canlı Test & İnce Ayar</span>
+            <span>{t('step3')}</span>
           </div>
         </div>
 
@@ -205,13 +204,13 @@ export function HandwritingCloneModal({
           {step === 1 && (
             <div className="flex flex-col gap-5">
               
-              {/* Guidance Banner */}
+              {/* Guidance Banner with active language Pangram */}
               <div className="p-3.5 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-900 flex items-start gap-2.5">
                 <HelpCircle className="w-4 h-4 text-amber-700 flex-shrink-0 mt-0.5" />
                 <div className="leading-relaxed">
-                  <strong>En yüksek doğruluk ve güven için ipucu:</strong> Çizgisiz veya çizgili bir beyaz kağıda tükenmez veya dolma kalemle 1-2 cümle yazın. İçinde Türkçe karakterlerin (ç, ğ, ı, ö, ş, ü) olduğu şu cümleyi yazmanız önerilir:
+                  <strong>{t('clonePangramPrompt')}</strong>
                   <div className="mt-1 font-serif italic text-amber-950 bg-amber-100/70 px-2.5 py-1 rounded border border-amber-200/80">
-                    "Pijamalı hasta yağız şoföre çabucak güvendi."
+                    "{t('pangram')}"
                   </div>
                 </div>
               </div>
@@ -242,7 +241,7 @@ export function HandwritingCloneModal({
                     />
                     <div className="flex items-center gap-2 text-xs font-semibold text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full border border-emerald-200">
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
-                      <span>Fotoğraf yüklendi — Analize Hazır</span>
+                      <span>{t('photoReady')}</span>
                     </div>
                   </div>
                 ) : (
@@ -251,8 +250,8 @@ export function HandwritingCloneModal({
                       <Upload className="w-6 h-6 stroke-[2]" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-bold text-stone-800">El Yazısı Fotoğrafını Buraya Bırakın</h3>
-                      <p className="text-xs text-stone-500 mt-1">Veya bilgisayarınızdan seçmek için tıklayın (JPG, PNG)</p>
+                      <h3 className="text-sm font-bold text-stone-800">{t('dragDropText')}</h3>
+                      <p className="text-xs text-stone-500 mt-1">{t('dragDropSubtext')}</p>
                     </div>
                   </>
                 )}
@@ -261,7 +260,7 @@ export function HandwritingCloneModal({
               {/* Pre-calibrated Demo Samples */}
               <div className="flex flex-col gap-2">
                 <span className="text-xs font-bold text-stone-500 uppercase tracking-wider">
-                  Veya Hazır Kalibre Edilmiş Örneklerle Deneyin:
+                  {t('orTryDemoSamples')}
                 </span>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   {SAMPLE_HANDWRITINGS.map((sample, i) => (
@@ -299,13 +298,12 @@ export function HandwritingCloneModal({
 
               <div className="flex flex-col gap-2 max-w-md">
                 <h3 className="text-base font-bold font-serif text-stone-800">
-                  El Yazısı Harf Geometrisi Çıkarılıyor
+                  {t('processingTitle')}
                 </h3>
                 <p className="text-xs text-stone-500 min-h-[20px]">
                   {processingStage}
                 </p>
 
-                {/* Progress Bar */}
                 <div className="w-full h-2 bg-stone-200 rounded-full overflow-hidden mt-3 shadow-inner">
                   <div
                     className="h-full bg-amber-800 transition-all duration-300 rounded-full"
@@ -324,17 +322,17 @@ export function HandwritingCloneModal({
               <div className="flex items-center justify-between p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs">
                 <div className="flex items-center gap-2 text-emerald-900 font-semibold">
                   <CheckCircle2 className="w-4 h-4 text-emerald-700" />
-                  <span>El Yazısı Başarıyla Klonlandı (%95 Kalibrasyon Doğruluğu)</span>
+                  <span>{t('calibrationSuccess')}</span>
                 </div>
-                <span className="text-[11px] text-emerald-700 font-mono">Türkçe Glifler Tam Uyumlu</span>
+                <span className="text-[11px] text-emerald-700 font-mono">{currentLang.name}</span>
               </div>
 
               {/* Live Interactive Test Notebook Pad */}
               <div className="flex flex-col gap-1.5">
                 <div className="flex items-center justify-between text-xs font-semibold text-stone-600">
-                  <span>Canlı Klavye Test Padi:</span>
+                  <span>{t('liveTestPadTitle')}</span>
                   <span className="text-[11px] text-stone-400 font-normal">
-                    Klavyeden yazın, kendi harflerinizin tepkisini görün
+                    {t('liveTestPadSubtitle')}
                   </span>
                 </div>
 
@@ -343,17 +341,18 @@ export function HandwritingCloneModal({
                     value={testText}
                     onChange={(e) => setTestText(e.target.value)}
                     rows={3}
+                    dir={currentLang.dir}
                     className="w-full bg-transparent resize-none border-none outline-none focus:ring-0 text-2xl pl-16 leading-relaxed ink-bleed"
                     style={{
-                      fontFamily: "'Caveat', cursive",
-                      transform: `skewX(${-metrics.slant}deg)`,
+                      fontFamily: langCode === 'ar' ? "'Aref Ruqaa', serif" : (langCode === 'ja' ? "'Yomogi', cursive" : "'Caveat', cursive"),
+                      transform: currentLang.dir === 'rtl' ? undefined : `skewX(${-metrics.slant}deg)`,
                       letterSpacing: `${metrics.letterSpacing}em`,
                       fontWeight: metrics.strokeWidth > 2.8 ? '700' : '500',
                       color: '#1d4ed8'
                     }}
                   />
                   <div className="absolute top-2 right-4 text-[10px] font-mono text-stone-400 select-none">
-                    Eğim: {metrics.slant}° • Kalınlık: {metrics.strokeWidth}px
+                    Slant: {metrics.slant}° • Stroke: {metrics.strokeWidth}px
                   </div>
                 </div>
               </div>
@@ -362,7 +361,7 @@ export function HandwritingCloneModal({
               <div className="p-4 bg-stone-100 rounded-xl border border-stone-200/80 flex flex-col gap-3.5">
                 <span className="text-xs font-bold text-stone-700 uppercase tracking-wider flex items-center gap-1.5">
                   <Sliders className="w-3.5 h-3.5 text-amber-800" />
-                  Karakter & Mürekkep İnce Ayarları
+                  {t('settings')}
                 </span>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
@@ -370,7 +369,7 @@ export function HandwritingCloneModal({
                   {/* Slant Angle */}
                   <div className="flex flex-col gap-1">
                     <div className="flex justify-between text-stone-600">
-                      <span>Harf Eğimi (Slant)</span>
+                      <span>{t('sliderSlant')}</span>
                       <span className="font-mono font-bold text-amber-900">{metrics.slant}°</span>
                     </div>
                     <input
@@ -387,7 +386,7 @@ export function HandwritingCloneModal({
                   {/* Stroke Width */}
                   <div className="flex flex-col gap-1">
                     <div className="flex justify-between text-stone-600">
-                      <span>Mürekkep / Uç Kalınlığı</span>
+                      <span>{t('sliderStroke')}</span>
                       <span className="font-mono font-bold text-amber-900">{metrics.strokeWidth}px</span>
                     </div>
                     <input
@@ -404,7 +403,7 @@ export function HandwritingCloneModal({
                   {/* Letter Spacing */}
                   <div className="flex flex-col gap-1">
                     <div className="flex justify-between text-stone-600">
-                      <span>Harf Aralığı (Tracking)</span>
+                      <span>{t('sliderSpacing')}</span>
                       <span className="font-mono font-bold text-amber-900">{metrics.letterSpacing}em</span>
                     </div>
                     <input
@@ -421,7 +420,7 @@ export function HandwritingCloneModal({
                   {/* Baseline Jitter */}
                   <div className="flex flex-col gap-1">
                     <div className="flex justify-between text-stone-600">
-                      <span>Organik Titreme (Jitter)</span>
+                      <span>{t('sliderJitter')}</span>
                       <span className="font-mono font-bold text-amber-900">{metrics.baselineJitter}</span>
                     </div>
                     <input
@@ -451,14 +450,14 @@ export function HandwritingCloneModal({
                 onClick={onClose}
                 className="px-4 py-1.5 text-xs text-stone-600 hover:bg-stone-200 rounded-lg transition-all"
               >
-                İptal
+                {t('cancel')}
               </button>
               <button
                 onClick={startAnalysis}
                 disabled={!imagePreview}
                 className="px-5 py-2 text-xs font-semibold text-white bg-amber-900 hover:bg-amber-800 rounded-lg shadow-sm transition-all flex items-center gap-1.5 disabled:opacity-40"
               >
-                <span>Analiz Et & Klonla</span>
+                <span>{t('btnAnalyze')}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </>
@@ -468,19 +467,19 @@ export function HandwritingCloneModal({
                 onClick={() => setStep(1)}
                 className="px-4 py-1.5 text-xs text-stone-600 hover:bg-stone-200 rounded-lg transition-all"
               >
-                Yeniden Fotoğraf Seç
+                {t('step1')}
               </button>
               <button
                 onClick={handleSaveAndActivate}
                 className="px-5 py-2 text-xs font-semibold text-white bg-gradient-to-r from-amber-900 to-amber-700 hover:from-amber-800 hover:to-amber-600 rounded-lg shadow-md transition-all flex items-center gap-1.5"
               >
                 <Check className="w-4 h-4 stroke-[2.5]" />
-                <span>Deftere Uygula & Klonu Başlat</span>
+                <span>{t('btnApplyClone')}</span>
               </button>
             </>
           ) : (
             <div className="w-full text-center text-xs text-stone-400">
-              İşlem devam ediyor...
+              {processingStage}
             </div>
           )}
         </div>

@@ -8,8 +8,11 @@ import { AiAssistantModal } from './components/AiAssistantModal';
 import { HandwritingCloneModal } from './components/HandwritingCloneModal';
 import { INITIAL_NOTEBOOKS } from './constants/notebooks';
 import { HANDWRITING_FONTS } from './constants/fonts';
+import { LanguageProvider, useTranslation } from './i18n/LanguageContext';
 
-export default function App() {
+function ScriptorApp() {
+  const { t, currentLang } = useTranslation();
+
   // Load notebooks from localStorage or fallback to INITIAL_NOTEBOOKS
   const [notebooks, setNotebooks] = useState(() => {
     try {
@@ -70,7 +73,7 @@ export default function App() {
     }));
   };
 
-  // Notebook property updates (Font, Size, Color, Paper, Cover)
+  // Notebook property updates
   const updateActiveNotebook = (updates) => {
     setNotebooks(prev => prev.map(nb => {
       if (nb.id !== activeNotebookId) return nb;
@@ -100,8 +103,8 @@ export default function App() {
   const handleAddPage = () => {
     const newPage = {
       id: `p-${Date.now()}`,
-      title: `Sayfa ${pages.length + 1}`,
-      date: new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }),
+      title: `${t('newPage')} ${pages.length + 1}`,
+      date: new Date().toLocaleDateString(currentLang.locale, { day: 'numeric', month: 'long', year: 'numeric' }),
       content: ''
     };
     const updatedPages = [...pages, newPage];
@@ -114,7 +117,7 @@ export default function App() {
 
   const handleDeletePage = () => {
     if (pages.length <= 1) return;
-    if (window.confirm('Bu sayfayı silmek istediğinize emin misiniz?')) {
+    if (window.confirm('Are you sure you want to delete this page?')) {
       const updatedPages = pages.filter((_, idx) => idx !== activePageIndex);
       const newIndex = Math.max(0, activePageIndex - 1);
       updateActiveNotebook({
@@ -140,8 +143,8 @@ export default function App() {
 
       const newPage = {
         id: `p-${Date.now()}`,
-        title: `Sayfa ${pages.length + 1}`,
-        date: new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }),
+        title: `${t('newPage')} ${pages.length + 1}`,
+        date: new Date().toLocaleDateString(currentLang.locale, { day: 'numeric', month: 'long', year: 'numeric' }),
         content: secondHalf
       };
 
@@ -171,8 +174,8 @@ export default function App() {
       pages: [
         {
           id: `p-${Date.now()}`,
-          title: 'İlk Sayfa',
-          date: new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }),
+          title: 'Page 1',
+          date: new Date().toLocaleDateString(currentLang.locale, { day: 'numeric', month: 'long', year: 'numeric' }),
           content: ''
         }
       ],
@@ -194,11 +197,11 @@ export default function App() {
 
   const isClonedActive = activeNotebook.fontId === 'cloned-personal-font';
   const currentFont = isClonedActive
-    ? { fontFamily: "'Caveat', cursive", name: 'Kendi El Yazım (Klon)' }
+    ? { fontFamily: "'Caveat', cursive", name: t('clonedFontActive') }
     : (HANDWRITING_FONTS.find(f => f.id === activeNotebook.fontId) || HANDWRITING_FONTS[0]);
 
   return (
-    <div className="min-h-screen bg-[#F3EFE6] flex flex-col font-sans text-stone-800">
+    <div className="min-h-screen bg-[#F3EFE6] flex flex-col font-sans text-stone-800 transition-colors">
       
       {/* Top Header */}
       <Header
@@ -210,7 +213,7 @@ export default function App() {
         hasClonedFont={!!clonedProfile}
         text={currentPage.content || ''}
         onClear={() => {
-          if (window.confirm('Bu sayfadaki yazıyı temizlemek istediğinize emin misiniz?')) {
+          if (window.confirm('Clear all text from this page?')) {
             handleTextChange('');
           }
         }}
@@ -279,7 +282,6 @@ export default function App() {
         onSelectNotebook={setActiveNotebookId}
         onCreateNotebook={handleCreateNotebook}
         onDeleteNotebook={handleDeleteNotebook}
-        onUpdateNotebook={updateActiveNotebook}
       />
 
       {/* AI Handwriting Assistant Modal */}
@@ -302,10 +304,16 @@ export default function App() {
 
       {/* Minimal Footer */}
       <footer className="w-full py-4 text-center text-xs text-stone-500 border-t border-stone-200/60 mt-auto bg-[#efeae0]/60">
-        <p>
-          Scriptor (Defter) — Çoklu defterler, bireysel el yazısı klonlama ve edebi AI entegrasyonu. Tüm notlarınız tarayıcınızda güvende.
-        </p>
+        <p>{t('footerText')}</p>
       </footer>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <LanguageProvider>
+      <ScriptorApp />
+    </LanguageProvider>
   );
 }

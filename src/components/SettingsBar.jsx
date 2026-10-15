@@ -1,6 +1,7 @@
 import React from 'react';
 import { HANDWRITING_FONTS } from '../constants/fonts';
 import { INK_COLORS, PAPER_STYLES } from '../constants/colors';
+import { useTranslation } from '../i18n/LanguageContext';
 import { 
   Type, 
   Palette, 
@@ -29,9 +30,11 @@ export function SettingsBar({
   clonedProfile,
   onOpenCloner
 }) {
+  const { t, langCode } = useTranslation();
   const isClonedActive = fontId === 'cloned-personal-font';
+
   const currentFont = isClonedActive 
-    ? { name: 'Kendi El Yazım (Klon)', category: 'Kişisel AI Klon', turkish: true, sample: 'Bu benim taranmış ve klonlanmış kendi el yazımdır.' }
+    ? { name: t('clonedFontActive'), category: 'AI Custom', sample: t('pangram') }
     : (HANDWRITING_FONTS.find(f => f.id === fontId) || HANDWRITING_FONTS[0]);
 
   return (
@@ -46,10 +49,10 @@ export function SettingsBar({
             <div className="flex items-center justify-between text-xs font-semibold text-stone-600">
               <span className="flex items-center gap-1.5">
                 <Type className="w-3.5 h-3.5 text-amber-700" />
-                El Yazısı Tipi
+                {t('fontType')}
               </span>
               <span className="text-[11px] font-normal text-stone-400">
-                {currentFont.category} • {currentFont.turkish ? '🇹🇷 Tam Türkçe' : 'Latin'}
+                {currentFont.category} {currentFont.tag ? `• ${currentFont.tag}` : ''}
               </span>
             </div>
 
@@ -63,16 +66,16 @@ export function SettingsBar({
                     : 'border-stone-300 text-stone-800'
                 }`}
               >
-                {/* Cloned Font Option (if exists) */}
+                {/* Cloned Font Option */}
                 {clonedProfile && (
                   <option value="cloned-personal-font" className="font-bold py-1 bg-amber-50">
-                    ⭐ Kendi El Yazım (Bireysel AI Klon)
+                    ⭐ {t('clonedFontActive')}
                   </option>
                 )}
 
                 {HANDWRITING_FONTS.map((font) => (
                   <option key={font.id} value={font.id} className="py-1">
-                    {font.name} — {font.category} {font.turkish ? '(Türkçe Destekli)' : ''}
+                    {font.name} — {font.category} {font.tag ? `[${font.tag}]` : ''}
                   </option>
                 ))}
               </select>
@@ -99,7 +102,7 @@ export function SettingsBar({
                   className="ml-2 text-[11px] text-amber-900 font-semibold hover:underline flex items-center gap-1 flex-shrink-0"
                 >
                   <Fingerprint className="w-3 h-3" />
-                  <span>Yeniden Kalibre Et</span>
+                  <span>{t('recalibrate')}</span>
                 </button>
               )}
             </div>
@@ -110,7 +113,7 @@ export function SettingsBar({
             <div className="flex items-center justify-between text-xs font-semibold text-stone-600">
               <span className="flex items-center gap-1.5">
                 <Maximize2 className="w-3.5 h-3.5 text-amber-700" />
-                Yazı Boyutu
+                {t('fontSize')}
               </span>
               <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 font-mono text-[11px] font-bold">
                 {fontSize}px
@@ -132,10 +135,10 @@ export function SettingsBar({
             {/* Preset Size Buttons */}
             <div className="flex items-center justify-between gap-1 text-[11px]">
               {[
-                { label: 'Küçük', size: 20 },
-                { label: 'Normal', size: 24 },
-                { label: 'Büyük', size: 30 },
-                { label: 'Manşet', size: 38 }
+                { label: '20px', size: 20 },
+                { label: '24px', size: 24 },
+                { label: '30px', size: 30 },
+                { label: '38px', size: 38 }
               ].map((preset) => (
                 <button
                   key={preset.size}
@@ -157,7 +160,7 @@ export function SettingsBar({
             <div className="flex items-center justify-between text-xs font-semibold text-stone-600">
               <span className="flex items-center gap-1.5">
                 <Palette className="w-3.5 h-3.5 text-amber-700" />
-                Mürekkep Rengi
+                {t('inkColor')}
               </span>
               <span className="text-[11px] text-stone-400 font-mono truncate max-w-[120px]">
                 {INK_COLORS.find(c => c.hex.toLowerCase() === inkColor.toLowerCase())?.name || inkColor}
@@ -184,7 +187,7 @@ export function SettingsBar({
 
               {/* Custom Color Input */}
               <label 
-                title="Özel Renk Seç"
+                title="Color Picker"
                 className="relative w-6 h-6 rounded-full flex-shrink-0 cursor-pointer border border-stone-300 bg-gradient-to-tr from-rose-500 via-amber-400 to-indigo-500 hover:scale-110 transition-transform flex items-center justify-center overflow-hidden"
               >
                 <input
@@ -196,9 +199,8 @@ export function SettingsBar({
               </label>
             </div>
 
-            {/* Quick Color Description */}
             <div className="text-[11px] text-stone-500 truncate">
-              {INK_COLORS.find(c => c.hex.toLowerCase() === inkColor.toLowerCase())?.description || 'Özel seçilmiş mürekkep tonu'}
+              {INK_COLORS.find(c => c.hex.toLowerCase() === inkColor.toLowerCase())?.description || inkColor}
             </div>
           </div>
 
@@ -211,7 +213,7 @@ export function SettingsBar({
           <div className="md:col-span-8 flex flex-col sm:flex-row sm:items-center gap-2">
             <span className="text-xs font-semibold text-stone-600 flex items-center gap-1.5 flex-shrink-0">
               <FileText className="w-3.5 h-3.5 text-amber-700" />
-              Kağıt Zemini:
+              {t('paperStyle')}:
             </span>
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
               {PAPER_STYLES.map((paper) => (
@@ -233,9 +235,9 @@ export function SettingsBar({
 
           {/* Mürekkep Yoğunluğu & Lif Efekti */}
           <div className="md:col-span-4 flex items-center justify-end gap-3 text-xs">
-            <div className="flex items-center gap-1.5" title="Mürekkep ıslaklığı / yoğunluğu">
+            <div className="flex items-center gap-1.5" title={t('inkOpacity')}>
               <Droplet className="w-3.5 h-3.5 text-stone-500" />
-              <span className="text-stone-600 hidden sm:inline">Yoğunluk:</span>
+              <span className="text-stone-600 hidden sm:inline">{t('inkOpacity')}:</span>
               <input
                 type="range"
                 min="0.75"
@@ -257,10 +259,10 @@ export function SettingsBar({
                   ? 'bg-stone-800 text-stone-100 border-stone-900'
                   : 'bg-stone-100 text-stone-600 border-stone-200 hover:bg-stone-200'
               }`}
-              title="Kağıt liflerine sızan mürekkep dağılması efekti"
+              title={t('inkBleed')}
             >
               <Sparkles className="w-3 h-3 text-amber-400" />
-              <span>Lif Efekti</span>
+              <span>{t('inkBleed')}</span>
             </button>
           </div>
 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { COVER_STYLES } from '../constants/notebooks';
+import { useTranslation } from '../i18n/LanguageContext';
 import { 
   Book, 
   Plus, 
@@ -7,7 +8,6 @@ import {
   Check, 
   X, 
   FolderPlus,
-  Sparkles,
   Palette
 } from 'lucide-react';
 
@@ -18,9 +18,9 @@ export function NotebookManagerModal({
   activeNotebookId,
   onSelectNotebook,
   onCreateNotebook,
-  onDeleteNotebook,
-  onUpdateNotebook
+  onDeleteNotebook
 }) {
+  const { t, currentLang } = useTranslation();
   const [isCreating, setIsCreating] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newSubtitle, setNewSubtitle] = useState('');
@@ -34,7 +34,7 @@ export function NotebookManagerModal({
 
     onCreateNotebook({
       title: newTitle.trim(),
-      subtitle: newSubtitle.trim() || 'Yeni el yazısı defteri',
+      subtitle: newSubtitle.trim() || 'Scriptor Notebook',
       coverId: newCoverId
     });
 
@@ -54,8 +54,8 @@ export function NotebookManagerModal({
               <Book className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-stone-800 font-serif">Defterlerim & Kitaplık</h2>
-              <p className="text-xs text-stone-500">Tüm el yazısı defterlerinizi yönetin ve yeni ciltler oluşturun</p>
+              <h2 className="text-base font-bold text-stone-800 font-serif">{t('myNotebooks')}</h2>
+              <p className="text-xs text-stone-500">{t('notebooksSubtitle')}</p>
             </div>
           </div>
           <button
@@ -76,41 +76,41 @@ export function NotebookManagerModal({
               className="w-full py-3 px-4 border-2 border-dashed border-amber-800/30 hover:border-amber-800/70 bg-amber-50/50 hover:bg-amber-50 rounded-xl flex items-center justify-center gap-2 text-sm font-semibold text-amber-900 transition-all group shadow-xs"
             >
               <Plus className="w-4 h-4 group-hover:scale-110 transition-transform" />
-              <span>Yeni Defter Aç & Cilt Tasarla</span>
+              <span>{t('createNewNotebook')}</span>
             </button>
           ) : (
             <form onSubmit={handleCreate} className="p-5 bg-stone-100/80 rounded-xl border border-stone-300/80 flex flex-col gap-4 animate-in slide-in-from-top-2 duration-200">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-stone-700 uppercase tracking-wider flex items-center gap-1.5">
                   <FolderPlus className="w-4 h-4 text-amber-800" />
-                  Yeni Defter Oluştur
+                  {t('createNewNotebook')}
                 </span>
                 <button
                   type="button"
                   onClick={() => setIsCreating(false)}
                   className="text-xs text-stone-500 hover:text-stone-800"
                 >
-                  Vazgeç
+                  {t('cancel')}
                 </button>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-stone-600 mb-1">Defter Başlığı</label>
+                  <label className="block text-xs font-semibold text-stone-600 mb-1">{t('notebookTitleLabel')}</label>
                   <input
                     type="text"
                     required
-                    placeholder="Örn: Yaratıcı Fikirler & Roman"
+                    placeholder="e.g. My Thoughts & Sketches"
                     value={newTitle}
                     onChange={(e) => setNewTitle(e.target.value)}
                     className="w-full h-9 px-3 text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-800/30 text-stone-800"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-stone-600 mb-1">Alt Açıklama (İsteğe Bağlı)</label>
+                  <label className="block text-xs font-semibold text-stone-600 mb-1">{t('notebookSubtitleLabel')}</label>
                   <input
                     type="text"
-                    placeholder="Örn: Sabah sayfaları ve eskizler"
+                    placeholder="e.g. Morning pages and reflections"
                     value={newSubtitle}
                     onChange={(e) => setNewSubtitle(e.target.value)}
                     className="w-full h-9 px-3 text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-800/30 text-stone-800"
@@ -122,7 +122,7 @@ export function NotebookManagerModal({
               <div>
                 <label className="block text-xs font-semibold text-stone-600 mb-2 flex items-center gap-1.5">
                   <Palette className="w-3.5 h-3.5 text-amber-800" />
-                  Kapak & Cilt Tasarımı Seçin
+                  {t('coverStyleLabel')}
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                   {COVER_STYLES.map((cover) => (
@@ -159,14 +159,14 @@ export function NotebookManagerModal({
                   onClick={() => setIsCreating(false)}
                   className="px-3 py-1.5 text-xs text-stone-600 hover:bg-stone-200 rounded-lg transition-all"
                 >
-                  İptal
+                  {t('cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={!newTitle.trim()}
                   className="px-4 py-1.5 text-xs font-semibold text-white bg-amber-900 hover:bg-amber-800 rounded-lg shadow-sm transition-all disabled:opacity-50"
                 >
-                  Defteri Oluştur
+                  {t('create')}
                 </button>
               </div>
             </form>
@@ -175,7 +175,7 @@ export function NotebookManagerModal({
           {/* Notebooks Grid */}
           <div className="flex flex-col gap-3">
             <span className="text-xs font-bold text-stone-500 uppercase tracking-wider">
-              Mevcut Defterleriniz ({notebooks.length})
+              {t('myNotebooks')} ({notebooks.length})
             </span>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               {notebooks.map((nb) => {
@@ -213,29 +213,29 @@ export function NotebookManagerModal({
                         <h3 className="text-sm font-bold text-stone-800 truncate font-serif">{nb.title}</h3>
                         {isActive && (
                           <span className="text-[10px] bg-amber-200 text-amber-900 font-bold px-1.5 py-0.2 rounded">
-                            Aktif
+                            Active
                           </span>
                         )}
                       </div>
                       <p className="text-xs text-stone-500 truncate mt-0.5">{nb.subtitle}</p>
                       
                       <div className="flex items-center gap-2 mt-2 text-[11px] text-stone-400">
-                        <span>{pageCount} sayfa</span>
+                        <span>{pageCount} {pageCount === 1 ? 'page' : 'pages'}</span>
                         <span>•</span>
                         <span>{cover.name}</span>
                       </div>
                     </div>
 
-                    {/* Delete Notebook Button (if more than 1 notebook exists) */}
+                    {/* Delete Notebook Button */}
                     {notebooks.length > 1 && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (window.confirm(`"${nb.title}" defterini silmek istediğinize emin misiniz?`)) {
+                          if (window.confirm(t('deleteNotebookConfirm', { title: nb.title }))) {
                             onDeleteNotebook(nb.id);
                           }
                         }}
-                        title="Defteri Sil"
+                        title="Delete Notebook"
                         className="opacity-0 group-hover:opacity-100 p-1.5 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -251,12 +251,12 @@ export function NotebookManagerModal({
 
         {/* Modal Footer */}
         <div className="px-6 py-3 border-t border-stone-200 bg-stone-50 flex items-center justify-between text-xs text-stone-500">
-          <span>Defterler ve sayfalar tarayıcınızda otomatik kaydedilir.</span>
+          <span>Scriptor • Local storage</span>
           <button
             onClick={onClose}
             className="px-4 py-1.5 bg-stone-200 hover:bg-stone-300 font-medium text-stone-800 rounded-lg transition-all"
           >
-            Kapat
+            {t('cancel')}
           </button>
         </div>
 

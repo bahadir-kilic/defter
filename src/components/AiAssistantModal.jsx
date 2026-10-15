@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { generateHandwritingContent } from '../services/aiService';
+import { useTranslation } from '../i18n/LanguageContext';
 import { 
   Sparkles, 
   X, 
@@ -21,6 +22,7 @@ export function AiAssistantModal({
   inkColor,
   onApplyText
 }) {
+  const { t, langCode, currentLang } = useTranslation();
   const [selectedAction, setSelectedAction] = useState('continue');
   const [customPrompt, setCustomPrompt] = useState('');
   const [generatedText, setGeneratedText] = useState('');
@@ -45,11 +47,12 @@ export function AiAssistantModal({
         action: actionType,
         currentText,
         apiKey,
-        userPrompt: customPrompt
+        userPrompt: customPrompt,
+        language: langCode
       });
       setGeneratedText(result);
     } catch (err) {
-      setGeneratedText('Bir hata oluştu: ' + err.message);
+      setGeneratedText('Error: ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -69,36 +72,36 @@ export function AiAssistantModal({
   const actions = [
     {
       id: 'continue',
-      title: 'Düşünceyi Devam Ettir',
-      desc: 'Yazının ruhunu ve akışını bozmadan sonraki paragrafı el yazısıyla üretir',
+      title: t('aiActionContinue'),
+      desc: t('aiActionContinueDesc'),
       icon: PenTool,
       color: 'text-amber-700 bg-amber-100'
     },
     {
       id: 'journalize',
-      title: 'Edebi Günlüğe Çevir',
-      desc: 'Dağınık düşünceleri samimi, derinlikli bir günlük sayfasına dönüştürür',
+      title: t('aiActionJournalize'),
+      desc: t('aiActionJournalizeDesc'),
       icon: BookHeart,
       color: 'text-rose-700 bg-rose-100'
     },
     {
       id: 'marginalia',
-      title: 'Kenar Notu & İlham Ekle',
-      desc: 'Sayfa kenarına el çizimi havasında zekice bir not veya alıntı düşer',
+      title: t('aiActionMarginalia'),
+      desc: t('aiActionMarginaliaDesc'),
       icon: Lightbulb,
       color: 'text-amber-600 bg-amber-50'
     },
     {
       id: 'summarize',
-      title: 'Maddeleştir & Eylem Planı',
-      desc: 'Yazılanları el yazısına yakışan vurucu maddelerle özetler',
+      title: t('aiActionSummarize'),
+      desc: t('aiActionSummarizeDesc'),
       icon: ListChecks,
       color: 'text-indigo-700 bg-indigo-100'
     }
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-sm animate-in fade-in duration-200" dir={currentLang.dir}>
       <div className="w-full max-w-2xl bg-[#FCFAF5] rounded-2xl shadow-2xl border border-stone-300 overflow-hidden flex flex-col max-h-[90vh]">
         
         {/* Header */}
@@ -109,12 +112,12 @@ export function AiAssistantModal({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold font-serif">Scriptor AI İlham & Edebi Asistan</h2>
+                <h2 className="text-base font-bold font-serif">{t('aiModalTitle')}</h2>
                 <span className="text-[10px] font-mono uppercase bg-amber-400/20 text-amber-200 px-2 py-0.5 rounded-full border border-amber-400/30">
-                  {apiKey ? 'Gemini 1.5 Bağlı' : 'Yerleşik Yaratıcı Motor'}
+                  {currentLang.flag} {apiKey ? 'Gemini 1.5' : 'Creative AI'}
                 </span>
               </div>
-              <p className="text-xs text-stone-300">Defterinizin ruhunu bozmadan düşünceleri zenginleştirin</p>
+              <p className="text-xs text-stone-300">{t('aiModalSubtitle')}</p>
             </div>
           </div>
           <button
@@ -158,11 +161,11 @@ export function AiAssistantModal({
             })}
           </div>
 
-          {/* Custom Prompt (Optional) */}
+          {/* Custom Prompt */}
           <div className="flex gap-2">
             <input
               type="text"
-              placeholder="Özel talimatınız var mı? (Örn: 'Biraz daha melankolik yaz', 'Geleceğe yönelik bitir')"
+              placeholder={t('aiCustomPromptPlaceholder')}
               value={customPrompt}
               onChange={(e) => setCustomPrompt(e.target.value)}
               className="flex-1 h-9 px-3 text-xs bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-800/20 text-stone-800"
@@ -175,12 +178,12 @@ export function AiAssistantModal({
               {loading ? (
                 <>
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  <span>Üretiliyor...</span>
+                  <span>{t('aiGenerating')}</span>
                 </>
               ) : (
                 <>
                   <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Üret</span>
+                  <span>{t('aiGenerateBtn')}</span>
                 </>
               )}
             </button>
@@ -189,19 +192,14 @@ export function AiAssistantModal({
           {/* Handwriting Output Preview */}
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between text-xs font-semibold text-stone-600">
-              <span>El Yazısı Çıktı Önizlemesi:</span>
-              {generatedText && (
-                <span className="text-[11px] text-stone-400 font-normal">
-                  Defterinizin aktif fontu ve mürekkebiyle gösterilir
-                </span>
-              )}
+              <span>{t('aiPreviewTitle')}</span>
             </div>
 
             <div className="min-h-[140px] max-h-[220px] overflow-y-auto p-4 rounded-xl border border-stone-300 bg-[#FAF7F0] paper-ruled shadow-inner relative">
               {loading ? (
                 <div className="h-full flex flex-col items-center justify-center gap-2 py-8 text-stone-500">
                   <Loader2 className="w-6 h-6 animate-spin text-amber-800" />
-                  <span className="text-xs font-serif italic">Mürekkep kağıda işleniyor...</span>
+                  <span className="text-xs font-serif italic">{t('aiGenerating')}</span>
                 </div>
               ) : generatedText ? (
                 <div
@@ -216,7 +214,7 @@ export function AiAssistantModal({
               ) : (
                 <div className="h-full flex flex-col items-center justify-center py-8 text-stone-400 text-center">
                   <PenTool className="w-6 h-6 stroke-1 mb-1 text-stone-300" />
-                  <span className="text-xs">Yukarıdaki seçeneklerden birine tıklayarak el yazısı içeriği üretin.</span>
+                  <span className="text-xs">Scriptor AI</span>
                 </div>
               )}
             </div>
@@ -229,7 +227,7 @@ export function AiAssistantModal({
               className="text-[11px] text-stone-500 hover:text-stone-800 flex items-center gap-1.5"
             >
               <Key className="w-3 h-3 text-amber-800" />
-              <span>{showKeyInput ? 'API Anahtarı Alanını Gizle' : 'Kendi Google Gemini API Anahtarınızı Kullanmak İster misiniz?'}</span>
+              <span>Google Gemini API Key (Optional)</span>
             </button>
 
             {showKeyInput && (
@@ -246,7 +244,7 @@ export function AiAssistantModal({
                   className="h-8 px-3 text-xs bg-amber-900 text-white font-medium rounded hover:bg-amber-800 transition-all flex items-center gap-1"
                 >
                   {savedKeySuccess ? <Check className="w-3.5 h-3.5" /> : null}
-                  <span>{savedKeySuccess ? 'Kaydedildi' : 'Kaydet'}</span>
+                  <span>{savedKeySuccess ? 'Saved' : 'Save'}</span>
                 </button>
               </div>
             )}
@@ -260,7 +258,7 @@ export function AiAssistantModal({
             onClick={onClose}
             className="px-3.5 py-1.5 text-xs text-stone-600 hover:bg-stone-200 rounded-lg transition-all"
           >
-            Vazgeç
+            {t('cancel')}
           </button>
 
           <div className="flex items-center gap-2">
@@ -269,7 +267,7 @@ export function AiAssistantModal({
               disabled={!generatedText}
               className="px-3 py-1.5 text-xs font-medium text-stone-700 bg-white border border-stone-300 hover:bg-stone-100 rounded-lg transition-all disabled:opacity-40"
             >
-              Tüm Sayfayı Değiştir
+              {t('aiInsertReplace')}
             </button>
 
             <button
@@ -277,7 +275,7 @@ export function AiAssistantModal({
               disabled={!generatedText}
               className="px-4 py-1.5 text-xs font-semibold text-white bg-amber-900 hover:bg-amber-800 rounded-lg shadow-sm transition-all flex items-center gap-1.5 disabled:opacity-40"
             >
-              <span>Sayfanın Sonuna Ekle</span>
+              <span>{t('aiInsertAppend')}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
