@@ -6,9 +6,8 @@ import {
   Trash2, 
   Sparkles, 
   SlidersHorizontal,
-  Book,
   ChevronDown,
-  Wand2
+  Fingerprint
 } from 'lucide-react';
 import { COVER_STYLES } from '../constants/notebooks';
 
@@ -17,8 +16,9 @@ export function Header({
   coverId,
   onOpenNotebooks,
   onOpenAiAssistant,
+  onOpenCloner,
+  hasClonedFont,
   text,
-  onLoadSample,
   onClear,
   settingsOpen,
   onToggleSettings
@@ -70,17 +70,29 @@ export function Header({
           </button>
         </div>
 
-        {/* Right: AI Assistant + Stats & Tools */}
+        {/* Right: Handwriting Cloner + AI Assistant + Tools */}
         <div className="flex items-center gap-2 sm:gap-2.5">
           
-          {/* AI Assistant Button (High Prominence) */}
+          {/* Handwriting Cloner Button (The Moat Feature) */}
+          <button
+            onClick={onOpenCloner}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-amber-950 bg-amber-100 hover:bg-amber-200 border border-amber-300/80 rounded-xl shadow-xs transition-all active:scale-95 group"
+            title="Kağıttan kendi el yazınızı klonlayın"
+          >
+            <Fingerprint className="w-3.5 h-3.5 text-amber-800 group-hover:scale-110 transition-transform" />
+            <span className="hidden sm:inline">
+              {hasClonedFont ? 'El Yazım (Klon)' : 'El Yazını Klonla'}
+            </span>
+          </button>
+
+          {/* AI Assistant Button */}
           <button
             onClick={onOpenAiAssistant}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-gradient-to-r from-amber-900 via-amber-800 to-stone-900 hover:from-amber-800 hover:to-stone-800 rounded-xl shadow-xs transition-all active:scale-95 border border-amber-950"
             title="AI El Yazısı Asistanı (Co-Writer & Edebi Günlük)"
           >
             <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
-            <span className="hidden sm:inline">AI İlham</span>
+            <span className="hidden md:inline">AI İlham</span>
           </button>
 
           {/* Stats Badge */}

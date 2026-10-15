@@ -9,8 +9,8 @@ import {
   Maximize2, 
   Check, 
   Sparkles,
-  Layers,
-  ChevronDown
+  ChevronDown,
+  Fingerprint
 } from 'lucide-react';
 
 export function SettingsBar({
@@ -25,19 +25,23 @@ export function SettingsBar({
   inkOpacity,
   onInkOpacityChange,
   inkBleed,
-  onInkBleedChange
+  onInkBleedChange,
+  clonedProfile,
+  onOpenCloner
 }) {
-  const currentFont = HANDWRITING_FONTS.find(f => f.id === fontId) || HANDWRITING_FONTS[0];
-  const currentPaper = PAPER_STYLES.find(p => p.id === paperId) || PAPER_STYLES[0];
+  const isClonedActive = fontId === 'cloned-personal-font';
+  const currentFont = isClonedActive 
+    ? { name: 'Kendi El Yazım (Klon)', category: 'Kişisel AI Klon', turkish: true, sample: 'Bu benim taranmış ve klonlanmış kendi el yazımdır.' }
+    : (HANDWRITING_FONTS.find(f => f.id === fontId) || HANDWRITING_FONTS[0]);
 
   return (
-    <div className="w-full bg-[#fdfbf7] border-b border-[#e8dfcf] shadow-sm py-3.5 px-4 sm:px-6 transition-all">
-      <div className="max-w-6xl mx-auto flex flex-col gap-4">
+    <div className="w-full bg-[#fdfbf7] border-b border-[#e8dfcf] shadow-xs py-3 px-4 sm:px-6 transition-all">
+      <div className="max-w-6xl mx-auto flex flex-col gap-3.5">
         
         {/* Main Settings Row */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-3.5 items-center">
           
-          {/* 1. Font Tipi Seçimi (Yazı Tipi) */}
+          {/* 1. Font Tipi Seçimi */}
           <div className="md:col-span-5 flex flex-col gap-1.5">
             <div className="flex items-center justify-between text-xs font-semibold text-stone-600">
               <span className="flex items-center gap-1.5">
@@ -53,8 +57,19 @@ export function SettingsBar({
               <select
                 value={fontId}
                 onChange={(e) => onFontChange(e.target.value)}
-                className="w-full h-10 pl-3 pr-8 text-sm font-medium bg-white border border-stone-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-700/20 focus:border-amber-700 text-stone-800 appearance-none cursor-pointer hover:border-stone-400 transition-all"
+                className={`w-full h-10 pl-3 pr-8 text-sm font-medium bg-white border rounded-lg shadow-xs focus:outline-none focus:ring-2 focus:ring-amber-700/20 focus:border-amber-700 appearance-none cursor-pointer transition-all ${
+                  isClonedActive 
+                    ? 'border-amber-600 text-amber-950 font-semibold bg-amber-50/30' 
+                    : 'border-stone-300 text-stone-800'
+                }`}
               >
+                {/* Cloned Font Option (if exists) */}
+                {clonedProfile && (
+                  <option value="cloned-personal-font" className="font-bold py-1 bg-amber-50">
+                    ⭐ Kendi El Yazım (Bireysel AI Klon)
+                  </option>
+                )}
+
                 {HANDWRITING_FONTS.map((font) => (
                   <option key={font.id} value={font.id} className="py-1">
                     {font.name} — {font.category} {font.turkish ? '(Türkçe Destekli)' : ''}
@@ -66,16 +81,31 @@ export function SettingsBar({
               </div>
             </div>
 
-            {/* Live Font Sample Pill */}
-            <div 
-              className="text-stone-700 text-base px-2 py-0.5 rounded bg-stone-100/60 truncate border border-stone-200/50"
-              style={{ fontFamily: currentFont.fontFamily }}
-            >
-              {currentFont.sample}
+            {/* Live Sample Pill */}
+            <div className="flex items-center justify-between text-xs">
+              <div 
+                className="text-stone-700 text-base px-2 py-0.5 rounded bg-stone-100/60 truncate border border-stone-200/50 flex-1"
+                style={{ 
+                  fontFamily: isClonedActive ? "'Caveat', cursive" : currentFont.fontFamily,
+                  transform: isClonedActive ? `skewX(-${clonedProfile?.metrics?.slant || 3}deg)` : undefined
+                }}
+              >
+                {currentFont.sample}
+              </div>
+
+              {isClonedActive && onOpenCloner && (
+                <button
+                  onClick={onOpenCloner}
+                  className="ml-2 text-[11px] text-amber-900 font-semibold hover:underline flex items-center gap-1 flex-shrink-0"
+                >
+                  <Fingerprint className="w-3 h-3" />
+                  <span>Yeniden Kalibre Et</span>
+                </button>
+              )}
             </div>
           </div>
 
-          {/* 2. Font Büyüklüğü (Yazı Boyutu) */}
+          {/* 2. Font Büyüklüğü */}
           <div className="md:col-span-3 flex flex-col gap-1.5">
             <div className="flex items-center justify-between text-xs font-semibold text-stone-600">
               <span className="flex items-center gap-1.5">
@@ -87,7 +117,7 @@ export function SettingsBar({
               </span>
             </div>
 
-            <div className="flex items-center gap-2 h-10 px-2 bg-white border border-stone-300 rounded-lg shadow-sm">
+            <div className="flex items-center gap-2 h-10 px-2 bg-white border border-stone-300 rounded-lg shadow-xs">
               <input
                 type="range"
                 min="18"
@@ -122,7 +152,7 @@ export function SettingsBar({
             </div>
           </div>
 
-          {/* 3. Mürekkep Rengi (Ink Color) */}
+          {/* 3. Mürekkep Rengi */}
           <div className="md:col-span-4 flex flex-col gap-1.5">
             <div className="flex items-center justify-between text-xs font-semibold text-stone-600">
               <span className="flex items-center gap-1.5">
@@ -134,7 +164,7 @@ export function SettingsBar({
               </span>
             </div>
 
-            <div className="flex items-center gap-1.5 h-10 px-2 bg-white border border-stone-300 rounded-lg shadow-sm overflow-x-auto">
+            <div className="flex items-center gap-1.5 h-10 px-2 bg-white border border-stone-300 rounded-lg shadow-xs overflow-x-auto">
               {INK_COLORS.map((ink) => (
                 <button
                   key={ink.id}
@@ -175,7 +205,7 @@ export function SettingsBar({
         </div>
 
         {/* Secondary Row: Paper Style & Ink Dynamics */}
-        <div className="pt-2.5 border-t border-stone-200/70 grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+        <div className="pt-2.5 border-t border-stone-200/70 grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
           
           {/* Kağıt Tipi Seçici */}
           <div className="md:col-span-8 flex flex-col sm:flex-row sm:items-center gap-2">
@@ -203,7 +233,6 @@ export function SettingsBar({
 
           {/* Mürekkep Yoğunluğu & Lif Efekti */}
           <div className="md:col-span-4 flex items-center justify-end gap-3 text-xs">
-            {/* Ink Flow / Opacity */}
             <div className="flex items-center gap-1.5" title="Mürekkep ıslaklığı / yoğunluğu">
               <Droplet className="w-3.5 h-3.5 text-stone-500" />
               <span className="text-stone-600 hidden sm:inline">Yoğunluk:</span>
@@ -221,7 +250,6 @@ export function SettingsBar({
               </span>
             </div>
 
-            {/* Ink Bleed Toggle */}
             <button
               onClick={() => onInkBleedChange(!inkBleed)}
               className={`flex items-center gap-1 px-2 py-1 rounded border text-[11px] transition-all ${

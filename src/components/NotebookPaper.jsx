@@ -16,11 +16,15 @@ export function NotebookPaper({
   notebookTitle,
   pageIndex,
   totalPages,
-  onOverflowDetected
+  onOverflowDetected,
+  clonedProfile
 }) {
   const textareaRef = useRef(null);
 
-  const selectedFont = HANDWRITING_FONTS.find(f => f.id === fontId) || HANDWRITING_FONTS[0];
+  const isCloned = fontId === 'cloned-personal-font';
+  const selectedFont = isCloned 
+    ? { id: 'cloned', name: 'Kendi El Yazım (Klon)', fontFamily: "'Caveat', cursive" }
+    : (HANDWRITING_FONTS.find(f => f.id === fontId) || HANDWRITING_FONTS[0]);
   const selectedPaper = PAPER_STYLES.find(p => p.id === paperId) || PAPER_STYLES[0];
   const selectedCover = COVER_STYLES.find(c => c.id === coverId) || COVER_STYLES[0];
 
@@ -138,7 +142,13 @@ export function NotebookPaper({
                 lineHeight: `${calculatedLineHeight}px`,
                 color: inkColor,
                 opacity: inkOpacity,
-                letterSpacing: selectedFont.id === 'kalam' ? '0.02em' : '0.01em',
+                letterSpacing: isCloned 
+                  ? `${clonedProfile?.metrics?.letterSpacing || 0.04}em`
+                  : (selectedFont.id === 'kalam' ? '0.02em' : '0.01em'),
+                transform: isCloned 
+                  ? `skewX(-${clonedProfile?.metrics?.slant || 3.5}deg)` 
+                  : undefined,
+                fontWeight: isCloned && clonedProfile?.metrics?.strokeWidth > 2.8 ? '700' : '500',
                 caretColor: inkColor,
                 whiteSpace: 'pre-wrap',
                 wordBreak: 'break-word',

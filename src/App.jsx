@@ -5,6 +5,7 @@ import { NotebookPaper } from './components/NotebookPaper';
 import { PageNavigationBar } from './components/PageNavigationBar';
 import { NotebookManagerModal } from './components/NotebookManagerModal';
 import { AiAssistantModal } from './components/AiAssistantModal';
+import { HandwritingCloneModal } from './components/HandwritingCloneModal';
 import { INITIAL_NOTEBOOKS } from './constants/notebooks';
 import { HANDWRITING_FONTS } from './constants/fonts';
 
@@ -24,9 +25,21 @@ export default function App() {
     return localStorage.getItem('scriptor_active_nb_id') || notebooks[0]?.id || 'nb-journal';
   });
 
+  // Cloned Handwriting Profile
+  const [clonedProfile, setClonedProfile] = useState(() => {
+    try {
+      const saved = localStorage.getItem('scriptor_cloned_profile');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error('Error loading cloned profile:', e);
+    }
+    return null;
+  });
+
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [notebooksModalOpen, setNotebooksModalOpen] = useState(false);
   const [aiModalOpen, setAiModalOpen] = useState(false);
+  const [cloneModalOpen, setCloneModalOpen] = useState(false);
   const [isPageOverfilled, setIsPageOverfilled] = useState(false);
 
   // Active Notebook Object
@@ -63,6 +76,12 @@ export default function App() {
       if (nb.id !== activeNotebookId) return nb;
       return { ...nb, ...updates };
     }));
+  };
+
+  // Handle applied cloned font
+  const handleApplyClonedFont = (profile) => {
+    setClonedProfile(profile);
+    updateActiveNotebook({ fontId: 'cloned-personal-font' });
   };
 
   // Page Navigation Handlers
@@ -173,7 +192,10 @@ export default function App() {
     }
   };
 
-  const currentFont = HANDWRITING_FONTS.find(f => f.id === activeNotebook.fontId) || HANDWRITING_FONTS[0];
+  const isClonedActive = activeNotebook.fontId === 'cloned-personal-font';
+  const currentFont = isClonedActive
+    ? { fontFamily: "'Caveat', cursive", name: 'Kendi El Yazım (Klon)' }
+    : (HANDWRITING_FONTS.find(f => f.id === activeNotebook.fontId) || HANDWRITING_FONTS[0]);
 
   return (
     <div className="min-h-screen bg-[#F3EFE6] flex flex-col font-sans text-stone-800">
@@ -184,6 +206,8 @@ export default function App() {
         coverId={activeNotebook.coverId || 'leather-brown'}
         onOpenNotebooks={() => setNotebooksModalOpen(true)}
         onOpenAiAssistant={() => setAiModalOpen(true)}
+        onOpenCloner={() => setCloneModalOpen(true)}
+        hasClonedFont={!!clonedProfile}
         text={currentPage.content || ''}
         onClear={() => {
           if (window.confirm('Bu sayfadaki yazıyı temizlemek istediğinize emin misiniz?')) {
@@ -209,6 +233,8 @@ export default function App() {
           onInkOpacityChange={() => {}}
           inkBleed={true}
           onInkBleedChange={() => {}}
+          clonedProfile={clonedProfile}
+          onOpenCloner={() => setCloneModalOpen(true)}
         />
       )}
 
@@ -240,6 +266,7 @@ export default function App() {
           pageIndex={activePageIndex}
           totalPages={pages.length}
           onOverflowDetected={setIsPageOverfilled}
+          clonedProfile={clonedProfile}
         />
       </main>
 
@@ -265,10 +292,18 @@ export default function App() {
         onApplyText={handleTextChange}
       />
 
+      {/* One-Shot Handwriting Cloner Studio Modal */}
+      <HandwritingCloneModal
+        isOpen={cloneModalOpen}
+        onClose={() => setCloneModalOpen(false)}
+        onApplyClonedFont={handleApplyClonedFont}
+        existingClonedProfile={clonedProfile}
+      />
+
       {/* Minimal Footer */}
       <footer className="w-full py-4 text-center text-xs text-stone-500 border-t border-stone-200/60 mt-auto bg-[#efeae0]/60">
         <p>
-          Scriptor — Çoklu defterler, akıllı sayfalama ve edebi AI entegrasyonu. Tüm notlarınız tarayıcınızda güvende.
+          Scriptor (Defter) — Çoklu defterler, bireysel el yazısı klonlama ve edebi AI entegrasyonu. Tüm notlarınız tarayıcınızda güvende.
         </p>
       </footer>
     </div>
