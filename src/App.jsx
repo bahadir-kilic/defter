@@ -2,262 +2,163 @@ import React, { useState, useEffect } from 'react';
 import { Header } from './components/Header';
 import { SettingsBar } from './components/SettingsBar';
 import { NotebookPaper } from './components/NotebookPaper';
-import { PageNavigationBar } from './components/PageNavigationBar';
 import { NotebookManagerModal } from './components/NotebookManagerModal';
-import { AiAssistantModal } from './components/AiAssistantModal';
 import { HandwritingCloneModal } from './components/HandwritingCloneModal';
-import { INITIAL_NOTEBOOKS } from './constants/notebooks';
-import { HANDWRITING_FONTS } from './constants/fonts';
 import { LanguageProvider, useTranslation } from './i18n/LanguageContext';
+import { useNotebooks } from './hooks/useNotebooks';
+import { Minimize2 } from 'lucide-react';
 
 function ScriptorApp() {
-  const { t, currentLang } = useTranslation();
+  const { t } = useTranslation();
 
-  // Load notebooks from localStorage or fallback to INITIAL_NOTEBOOKS
-  const [notebooks, setNotebooks] = useState(() => {
-    try {
-      const saved = localStorage.getItem('scriptor_notebooks_v2');
-      if (saved) return JSON.parse(saved);
-    } catch (e) {
-      console.error('Error loading notebooks:', e);
-    }
-    return INITIAL_NOTEBOOKS;
-  });
+  const {
+    notebooks,
+    activeNotebook,
+    activeNotebookId,
+    setActiveNotebookId,
+    pages,
+    activePageIndex,
+    currentPage,
+    viewMode,
+    setViewMode,
+    soundEnabled,
+    setSoundEnabled,
+    zenMode,
+    setZenMode,
+    lastSaved,
+    updateActiveNotebook,
+    updatePageContent,
+    prevPage,
+    nextPage,
+    addPage,
+    deletePage,
+    createNotebook,
+    deleteNotebook
+  } = useNotebooks();
 
-  const [activeNotebookId, setActiveNotebookId] = useState(() => {
-    return localStorage.getItem('scriptor_active_nb_id') || notebooks[0]?.id || 'nb-journal';
-  });
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [notebooksModalOpen, setNotebooksModalOpen] = useState(false);
+  const [cloneModalOpen, setCloneModalOpen] = useState(false);
+  const [saveToast, setSaveToast] = useState(false);
 
-  // Cloned Handwriting Profile
+  // Cloned profile state
   const [clonedProfile, setClonedProfile] = useState(() => {
     try {
       const saved = localStorage.getItem('scriptor_cloned_profile');
       if (saved) return JSON.parse(saved);
-    } catch (e) {
-      console.error('Error loading cloned profile:', e);
-    }
+    } catch (e) {}
     return null;
   });
 
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [notebooksModalOpen, setNotebooksModalOpen] = useState(false);
-  const [aiModalOpen, setAiModalOpen] = useState(false);
-  const [cloneModalOpen, setCloneModalOpen] = useState(false);
-  const [isPageOverfilled, setIsPageOverfilled] = useState(false);
-
-  // Active Notebook Object
-  const activeNotebook = notebooks.find(nb => nb.id === activeNotebookId) || notebooks[0];
-  const pages = activeNotebook.pages || [{ id: 'p-1', title: 'Sayfa 1', content: '', date: '' }];
-  const activePageIndex = Math.min(activeNotebook.activePageIndex || 0, pages.length - 1);
-  const currentPage = pages[activePageIndex] || pages[0];
-
-  // Save notebooks to localStorage on every change
-  useEffect(() => {
-    localStorage.setItem('scriptor_notebooks_v2', JSON.stringify(notebooks));
-  }, [notebooks]);
-
-  useEffect(() => {
-    localStorage.setItem('scriptor_active_nb_id', activeNotebookId);
-  }, [activeNotebookId]);
-
-  // Update current page text
-  const handleTextChange = (newContent) => {
-    setNotebooks(prev => prev.map(nb => {
-      if (nb.id !== activeNotebookId) return nb;
-      const updatedPages = [...nb.pages];
-      updatedPages[activePageIndex] = {
-        ...updatedPages[activePageIndex],
-        content: newContent
-      };
-      return { ...nb, pages: updatedPages };
-    }));
-  };
-
-  // Notebook property updates
-  const updateActiveNotebook = (updates) => {
-    setNotebooks(prev => prev.map(nb => {
-      if (nb.id !== activeNotebookId) return nb;
-      return { ...nb, ...updates };
-    }));
-  };
-
-  // Handle applied cloned font
   const handleApplyClonedFont = (profile) => {
     setClonedProfile(profile);
     updateActiveNotebook({ fontId: 'cloned-personal-font' });
   };
 
-  // Page Navigation Handlers
-  const handlePrevPage = () => {
-    if (activePageIndex > 0) {
-      updateActiveNotebook({ activePageIndex: activePageIndex - 1 });
-    }
-  };
-
-  const handleNextPage = () => {
-    if (activePageIndex < pages.length - 1) {
-      updateActiveNotebook({ activePageIndex: activePageIndex + 1 });
-    }
-  };
-
-  const handleAddPage = () => {
-    const newPage = {
-      id: `p-${Date.now()}`,
-      title: `${t('newPage')} ${pages.length + 1}`,
-      date: new Date().toLocaleDateString(currentLang.locale, { day: 'numeric', month: 'long', year: 'numeric' }),
-      content: ''
+  // Keyboard Shortcuts (Zen, Spread, Page Flip, New Page, Save)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Cmd/Ctrl + S
+      if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+        e.preventDefault();
+        setSaveToast(true);
+        setTimeout(() => setSaveToast(false), 2000);
+      }
+      // Cmd/Ctrl + J: Toggle Zen Focus
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'j') {
+        e.preventDefault();
+        setZenMode(z => !z);
+      }
+      // Cmd/Ctrl + B: Toggle Spread Mode
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'b') {
+        e.preventDefault();
+        setViewMode(v => v === 'spread' ? 'single' : 'spread');
+      }
+      // Cmd/Ctrl + N: New Page
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'n') {
+        e.preventDefault();
+        addPage();
+      }
+      // Esc: Exit Zen mode
+      if (e.key === 'Escape' && zenMode) {
+        setZenMode(false);
+      }
     };
-    const updatedPages = [...pages, newPage];
-    updateActiveNotebook({
-      pages: updatedPages,
-      activePageIndex: updatedPages.length - 1
-    });
-    setIsPageOverfilled(false);
-  };
 
-  const handleDeletePage = () => {
-    if (pages.length <= 1) return;
-    if (window.confirm('Are you sure you want to delete this page?')) {
-      const updatedPages = pages.filter((_, idx) => idx !== activePageIndex);
-      const newIndex = Math.max(0, activePageIndex - 1);
-      updateActiveNotebook({
-        pages: updatedPages,
-        activePageIndex: newIndex
-      });
-    }
-  };
-
-  // Auto split page when content overflows
-  const handleAutoSplitPage = () => {
-    const content = currentPage.content || '';
-    const lines = content.split('\n');
-    if (lines.length > 12) {
-      const firstHalf = lines.slice(0, 12).join('\n');
-      const secondHalf = lines.slice(12).join('\n');
-
-      const updatedPages = [...pages];
-      updatedPages[activePageIndex] = {
-        ...updatedPages[activePageIndex],
-        content: firstHalf
-      };
-
-      const newPage = {
-        id: `p-${Date.now()}`,
-        title: `${t('newPage')} ${pages.length + 1}`,
-        date: new Date().toLocaleDateString(currentLang.locale, { day: 'numeric', month: 'long', year: 'numeric' }),
-        content: secondHalf
-      };
-
-      updatedPages.splice(activePageIndex + 1, 0, newPage);
-      updateActiveNotebook({
-        pages: updatedPages,
-        activePageIndex: activePageIndex + 1
-      });
-      setIsPageOverfilled(false);
-    } else {
-      handleAddPage();
-    }
-  };
-
-  // Create new notebook
-  const handleCreateNotebook = ({ title, subtitle, coverId }) => {
-    const newNb = {
-      id: `nb-${Date.now()}`,
-      title,
-      subtitle,
-      coverId,
-      paperId: activeNotebook.paperId || 'ruled',
-      fontId: activeNotebook.fontId || 'caveat',
-      fontSize: activeNotebook.fontSize || 26,
-      inkColor: activeNotebook.inkColor || '#1d4ed8',
-      createdAt: new Date().toISOString(),
-      pages: [
-        {
-          id: `p-${Date.now()}`,
-          title: 'Page 1',
-          date: new Date().toLocaleDateString(currentLang.locale, { day: 'numeric', month: 'long', year: 'numeric' }),
-          content: ''
-        }
-      ],
-      activePageIndex: 0
-    };
-    setNotebooks(prev => [newNb, ...prev]);
-    setActiveNotebookId(newNb.id);
-  };
-
-  // Delete notebook
-  const handleDeleteNotebook = (idToDelete) => {
-    if (notebooks.length <= 1) return;
-    const remaining = notebooks.filter(nb => nb.id !== idToDelete);
-    setNotebooks(remaining);
-    if (activeNotebookId === idToDelete) {
-      setActiveNotebookId(remaining[0].id);
-    }
-  };
-
-  const isClonedActive = activeNotebook.fontId === 'cloned-personal-font';
-  const currentFont = isClonedActive
-    ? { fontFamily: "'Caveat', cursive", name: t('clonedFontActive') }
-    : (HANDWRITING_FONTS.find(f => f.id === activeNotebook.fontId) || HANDWRITING_FONTS[0]);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [addPage, setZenMode, setViewMode, zenMode]);
 
   return (
-    <div className="min-h-screen bg-[#F3EFE6] flex flex-col font-sans text-stone-800 transition-colors">
+    <div className="min-h-screen desk-ambient flex flex-col font-sans text-stone-800 transition-colors relative overflow-x-hidden">
       
-      {/* Top Header */}
-      <Header
-        notebookTitle={activeNotebook.title}
-        coverId={activeNotebook.coverId || 'leather-brown'}
-        onOpenNotebooks={() => setNotebooksModalOpen(true)}
-        onOpenAiAssistant={() => setAiModalOpen(true)}
-        onOpenCloner={() => setCloneModalOpen(true)}
-        hasClonedFont={!!clonedProfile}
-        text={currentPage.content || ''}
-        onClear={() => {
-          if (window.confirm('Clear all text from this page?')) {
-            handleTextChange('');
-          }
-        }}
-        settingsOpen={settingsOpen}
-        onToggleSettings={() => setSettingsOpen(!settingsOpen)}
-      />
-
-      {/* Settings Bar */}
-      {settingsOpen && (
-        <SettingsBar
-          fontId={activeNotebook.fontId || 'caveat'}
-          onFontChange={(newFont) => updateActiveNotebook({ fontId: newFont })}
-          fontSize={activeNotebook.fontSize || 26}
-          onFontSizeChange={(newSize) => updateActiveNotebook({ fontSize: newSize })}
-          inkColor={activeNotebook.inkColor || '#1d4ed8'}
-          onInkColorChange={(newColor) => updateActiveNotebook({ inkColor: newColor })}
-          paperId={activeNotebook.paperId || 'ruled'}
-          onPaperChange={(newPaper) => updateActiveNotebook({ paperId: newPaper })}
-          inkOpacity={0.95}
-          onInkOpacityChange={() => {}}
-          inkBleed={true}
-          onInkBleedChange={() => {}}
-          clonedProfile={clonedProfile}
-          onOpenCloner={() => setCloneModalOpen(true)}
-        />
+      {/* Save Notification Toast */}
+      {saveToast && (
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-[#2A1D15] text-[#FAF7F0] px-4 py-1.5 rounded-full text-xs font-serif shadow-xl flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-150">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+          <span>Tüm satırlar kaydedildi</span>
+        </div>
       )}
 
-      {/* Page Navigation & Pagination Bar */}
-      <PageNavigationBar
-        currentPageIndex={activePageIndex}
-        totalPages={pages.length}
-        onPrevPage={handlePrevPage}
-        onNextPage={handleNextPage}
-        onAddPage={handleAddPage}
-        onDeletePage={handleDeletePage}
-        onAutoSplitPage={handleAutoSplitPage}
-        isPageOverfilled={isPageOverfilled}
-      />
+      {/* Floating Zen Mode Exit Pill */}
+      {zenMode && (
+        <button
+          onClick={() => setZenMode(false)}
+          className="fixed top-4 right-4 z-50 bg-stone-900/60 hover:bg-stone-900 text-stone-200 px-3 py-1.5 rounded-full text-xs flex items-center gap-1.5 backdrop-blur-sm shadow-md transition-all group"
+          title="Zen Odak Modundan Çık (Esc)"
+        >
+          <Minimize2 className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+          <span className="text-[11px] font-mono">Zen'den Çık</span>
+        </button>
+      )}
 
-      {/* Main Tactile Notebook Surface */}
-      <main className="flex-1 w-full max-w-6xl mx-auto flex flex-col items-center pb-12">
-        <NotebookPaper
+      {/* Top Header (Fades in/out smoothly in Zen mode) */}
+      <div className={`transition-opacity duration-300 ${zenMode ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+        <Header
+          notebookTitle={activeNotebook.title}
+          coverId={activeNotebook.coverId || 'leather-brown'}
+          onOpenNotebooks={() => setNotebooksModalOpen(true)}
+          onOpenCloner={() => setCloneModalOpen(true)}
+          hasClonedFont={!!clonedProfile}
           text={currentPage.content || ''}
-          onChange={handleTextChange}
+          settingsOpen={settingsOpen}
+          onToggleSettings={() => setSettingsOpen(!settingsOpen)}
+          viewMode={viewMode}
+          onToggleViewMode={() => setViewMode(v => v === 'spread' ? 'single' : 'spread')}
+          soundEnabled={soundEnabled}
+          onToggleSound={() => setSoundEnabled(s => !s)}
+          onToggleZen={() => setZenMode(z => !z)}
+          lastSaved={lastSaved}
+        />
+
+        {/* Compact Settings Drawer */}
+        {settingsOpen && (
+          <SettingsBar
+            fontId={activeNotebook.fontId || 'caveat'}
+            onFontChange={(newFont) => updateActiveNotebook({ fontId: newFont })}
+            fontSize={activeNotebook.fontSize || 26}
+            onFontSizeChange={(newSize) => updateActiveNotebook({ fontSize: newSize })}
+            inkColor={activeNotebook.inkColor || '#1d4ed8'}
+            onInkColorChange={(newColor) => updateActiveNotebook({ inkColor: newColor })}
+            paperId={activeNotebook.paperId || 'ruled'}
+            onPaperChange={(newPaper) => updateActiveNotebook({ paperId: newPaper })}
+            inkOpacity={0.95}
+            onInkOpacityChange={() => {}}
+            inkBleed={true}
+            onInkBleedChange={() => {}}
+            clonedProfile={clonedProfile}
+            onOpenCloner={() => setCloneModalOpen(true)}
+          />
+        )}
+      </div>
+
+      {/* Main Study Desk & Tactile Notebook Surface */}
+      <main className="flex-1 w-full flex flex-col items-center justify-center p-2 sm:p-6 transition-all">
+        <NotebookPaper
+          pages={pages}
+          activePageIndex={activePageIndex}
+          onPageChange={() => {}}
+          onTextChange={updatePageContent}
           fontId={activeNotebook.fontId || 'caveat'}
           fontSize={activeNotebook.fontSize || 26}
           inkColor={activeNotebook.inkColor || '#1d4ed8'}
@@ -266,12 +167,21 @@ function ScriptorApp() {
           inkOpacity={0.95}
           inkBleed={true}
           notebookTitle={activeNotebook.title}
-          pageIndex={activePageIndex}
-          totalPages={pages.length}
-          onOverflowDetected={setIsPageOverfilled}
           clonedProfile={clonedProfile}
+          viewMode={viewMode}
+          soundEnabled={soundEnabled}
+          onToggleSound={() => setSoundEnabled(s => !s)}
+          onToggleZen={() => setZenMode(z => !z)}
+          onAddPage={addPage}
+          onPrevPage={prevPage}
+          onNextPage={nextPage}
         />
       </main>
+
+      {/* Minimal Editorial Footer */}
+      <footer className={`w-full py-3 text-center text-[11px] font-serif text-stone-500/80 transition-opacity duration-300 ${zenMode ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+        <p>Scriptor • Dokunsal Analog Çalışma Alanı</p>
+      </footer>
 
       {/* Notebook Manager Modal */}
       <NotebookManagerModal
@@ -280,18 +190,8 @@ function ScriptorApp() {
         notebooks={notebooks}
         activeNotebookId={activeNotebookId}
         onSelectNotebook={setActiveNotebookId}
-        onCreateNotebook={handleCreateNotebook}
-        onDeleteNotebook={handleDeleteNotebook}
-      />
-
-      {/* AI Handwriting Assistant Modal */}
-      <AiAssistantModal
-        isOpen={aiModalOpen}
-        onClose={() => setAiModalOpen(false)}
-        currentText={currentPage.content || ''}
-        fontFamily={currentFont.fontFamily}
-        inkColor={activeNotebook.inkColor || '#1d4ed8'}
-        onApplyText={handleTextChange}
+        onCreateNotebook={createNotebook}
+        onDeleteNotebook={deleteNotebook}
       />
 
       {/* One-Shot Handwriting Cloner Studio Modal */}
@@ -302,10 +202,6 @@ function ScriptorApp() {
         existingClonedProfile={clonedProfile}
       />
 
-      {/* Minimal Footer */}
-      <footer className="w-full py-4 text-center text-xs text-stone-500 border-t border-stone-200/60 mt-auto bg-[#efeae0]/60">
-        <p>{t('footerText')}</p>
-      </footer>
     </div>
   );
 }

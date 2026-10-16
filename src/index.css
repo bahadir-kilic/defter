@@ -7,111 +7,153 @@
     box-sizing: border-box;
   }
   
-  body {
+  html, body {
     margin: 0;
     padding: 0;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
-/* Paper styles with precise baseline and tactile textures */
-
-/* 1. Lined / Ruled Paper (Çizgili Defter) */
-.paper-ruled {
-  background-color: #fbf8f1;
+/* ─────────────────────────────────────────────────────────────
+   PREMIUM DESK ATMOSPHERE
+   Warm, tactile wood/linen study atmosphere with soft vignette
+   ───────────────────────────────────────────────────────────── */
+.desk-ambient {
+  background-color: #EDE8DE;
   background-image: 
-    linear-gradient(to right, rgba(239, 68, 68, 0.4) 1px, transparent 1px),
-    linear-gradient(to bottom, transparent calc(var(--line-height, 36px) - 1px), rgba(99, 102, 241, 0.22) calc(var(--line-height, 36px) - 1px), rgba(99, 102, 241, 0.22) var(--line-height, 36px));
+    radial-gradient(ellipse at 50% 20%, rgba(255, 253, 245, 0.6) 0%, rgba(226, 219, 206, 0.8) 60%, rgba(198, 189, 173, 0.95) 100%),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.02'/%3E%3C/svg%3E");
+}
+
+.desk-dark {
+  background-color: #17181c;
+  background-image: radial-gradient(ellipse at 50% 20%, #25272e 0%, #17181c 70%, #0d0e11 100%);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   PAPER STYLES (Calibrated to exact baseline grid)
+   ───────────────────────────────────────────────────────────── */
+
+/* 1. Lined / Ruled Paper (Klasik Krem Çizgili Defter) */
+.paper-ruled {
+  background-color: #FAF6ED;
+  background-image: 
+    linear-gradient(to right, rgba(225, 29, 72, 0.35) 1.5px, transparent 1.5px),
+    linear-gradient(to bottom, transparent calc(var(--line-height, 36px) - 1px), rgba(99, 102, 241, 0.18) calc(var(--line-height, 36px) - 1px), rgba(99, 102, 241, 0.18) var(--line-height, 36px));
   background-size: 100% 100%, 100% var(--line-height, 36px);
-  background-position: 72px 0, 0 16px;
+  background-position: var(--margin-pos, 72px) 0, 0 var(--top-line-offset, 22px);
   background-repeat: no-repeat, repeat-y;
 }
 
-/* 2. Yellow Legal Pad (Sarı Hukuk Defteri) */
+/* 2. Yellow Legal Pad (Sarı Amerikan Hukuk Bloku) */
 .paper-legal {
   background-color: #FEF9C3;
   background-image: 
-    linear-gradient(to right, rgba(239, 68, 68, 0.5) 1.5px, transparent 1.5px, transparent 5px, rgba(239, 68, 68, 0.3) 6px, transparent 6px),
-    linear-gradient(to bottom, transparent calc(var(--line-height, 36px) - 1px), rgba(147, 197, 253, 0.5) calc(var(--line-height, 36px) - 1px), rgba(147, 197, 253, 0.5) var(--line-height, 36px));
+    linear-gradient(to right, rgba(225, 29, 72, 0.45) 1.5px, transparent 1.5px, transparent 4px, rgba(225, 29, 72, 0.25) 5px, transparent 5px),
+    linear-gradient(to bottom, transparent calc(var(--line-height, 36px) - 1px), rgba(125, 178, 255, 0.38) calc(var(--line-height, 36px) - 1px), rgba(125, 178, 255, 0.38) var(--line-height, 36px));
   background-size: 100% 100%, 100% var(--line-height, 36px);
-  background-position: 68px 0, 0 16px;
+  background-position: var(--margin-pos, 68px) 0, 0 var(--top-line-offset, 22px);
   background-repeat: no-repeat, repeat-y;
 }
 
-/* 3. Grid / Math Notebook (Kareli Defter) */
-.paper-grid {
-  background-color: #F8F9FA;
-  background-image: 
-    linear-gradient(to right, rgba(59, 130, 246, 0.15) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(59, 130, 246, 0.15) 1px, transparent 1px);
-  background-size: 24px 24px;
-}
-
-/* 4. Dot Grid / Bullet Journal (Noktalı Defter) */
+/* 3. Dot Grid (Noktalı Bullet Journal) */
 .paper-dots {
   background-color: #FAF8F5;
-  background-image: radial-gradient(rgba(100, 116, 139, 0.3) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(110, 115, 130, 0.25) 1.2px, transparent 1.2px);
   background-size: 24px 24px;
   background-position: 12px 12px;
 }
 
-/* 5. Plain Cream / Warm Moleskine (Düz Krem Kağıt) */
+/* 4. Grid / Math (Kareli Eskiz Defteri) */
+.paper-grid {
+  background-color: #F8F9FA;
+  background-image: 
+    linear-gradient(to right, rgba(99, 102, 241, 0.12) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(99, 102, 241, 0.12) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* 5. Plain Moleskine Warm Cream (Çizgisiz Krem) */
 .paper-cream {
-  background-color: #FAF5EB;
+  background-color: #FAF5EA;
 }
 
-/* 6. Kraft Paper / Vintage Parchment (Parşömen / Kraft Kağıt) */
-.paper-kraft {
-  background-color: #EBD9BF;
+/* 6. Vintage Parchment (Nostaljik Parşömen) */
+.paper-parchment {
+  background-color: #EFE4CE;
+  background-image: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.15), rgba(175, 140, 95, 0.08));
 }
 
-/* 7. Midnight Journal (Gece Defteri) */
-.paper-dark {
-  background-color: #1E1F24;
-  background-image: linear-gradient(to bottom, transparent calc(var(--line-height, 36px) - 1px), rgba(255, 255, 255, 0.08) calc(var(--line-height, 36px) - 1px), rgba(255, 255, 255, 0.08) var(--line-height, 36px));
-  background-size: 100% var(--line-height, 36px);
-}
-
-/* Subtle organic grain overlay using SVG noise */
-.paper-grain {
+/* Tactile paper fiber overlay */
+.paper-fiber {
   position: relative;
 }
-.paper-grain::before {
+.paper-fiber::before {
   content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.035'/%3E%3C/svg%3E");
-  opacity: 0.85;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.038'/%3E%3C/svg%3E");
   border-radius: inherit;
   z-index: 2;
 }
 
-/* Real ink soak effect: subtly diffuses edge like ink bleeding into fibrous paper */
-.ink-bleed {
-  text-shadow: 0.4px 0.4px 0.5px rgba(0, 0, 0, 0.12), -0.2px -0.2px 0.3px rgba(0, 0, 0, 0.05);
+/* Center binding gutter shadow (Açık Defter Ortasındaki Doğal Derinlik Gölgelendirmesi) */
+.open-book-spine {
+  position: relative;
+}
+.open-book-spine::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 44px;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.08) 0%,
+    rgba(0, 0, 0, 0.22) 46%,
+    rgba(0, 0, 0, 0.35) 50%,
+    rgba(0, 0, 0, 0.22) 54%,
+    rgba(0, 0, 0, 0.08) 100%
+  );
+  pointer-events: none;
+  z-index: 10;
 }
 
-/* Realistic fountain pen ink blend */
-.ink-fountain {
-  mix-blend-mode: multiply;
+/* Soft paper curve highlight */
+.page-left-highlight {
+  box-shadow: inset -12px 0 16px -8px rgba(0, 0, 0, 0.08);
+}
+.page-right-highlight {
+  box-shadow: inset 12px 0 16px -8px rgba(0, 0, 0, 0.08);
+}
+
+/* Real ink soak effect: micro-diffusion of ink into fiber */
+.ink-bleed {
+  text-shadow: 0.35px 0.35px 0.4px rgba(0, 0, 0, 0.12), -0.2px -0.2px 0.25px rgba(0, 0, 0, 0.05);
+}
+
+/* Discreet vintage cursor */
+textarea {
+  caret-shape: bar;
 }
 
 /* Custom minimal scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
-
 ::-webkit-scrollbar-track {
   background: transparent;
 }
-
 ::-webkit-scrollbar-thumb {
-  background: rgba(140, 120, 100, 0.25);
+  background: rgba(140, 120, 100, 0.2);
   border-radius: 9999px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(140, 120, 100, 0.45);
+  background: rgba(140, 120, 100, 0.4);
 }

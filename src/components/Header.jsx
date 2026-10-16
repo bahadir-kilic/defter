@@ -3,12 +3,14 @@ import {
   Feather, 
   Copy, 
   Check, 
-  Trash2, 
-  Sparkles, 
   SlidersHorizontal,
   ChevronDown,
   Fingerprint,
-  Globe
+  BookOpen,
+  FileText,
+  Volume2,
+  VolumeX,
+  Maximize2
 } from 'lucide-react';
 import { COVER_STYLES } from '../constants/notebooks';
 import { useTranslation } from '../i18n/LanguageContext';
@@ -17,20 +19,21 @@ export function Header({
   notebookTitle,
   coverId,
   onOpenNotebooks,
-  onOpenAiAssistant,
   onOpenCloner,
   hasClonedFont,
   text,
-  onClear,
   settingsOpen,
-  onToggleSettings
+  onToggleSettings,
+  viewMode,
+  onToggleViewMode,
+  soundEnabled,
+  onToggleSound,
+  onToggleZen,
+  lastSaved
 }) {
   const { t, langCode, changeLanguage, languages } = useTranslation();
   const [copied, setCopied] = useState(false);
   const [langMenuOpen, setLangMenuOpen] = useState(false);
-
-  const words = text.trim() ? text.trim().split(/\s+/).length : 0;
-  const chars = text.length;
 
   const activeCover = COVER_STYLES.find(c => c.id === coverId) || COVER_STYLES[0];
   const currentLangObj = languages.find(l => l.code === langCode) || languages[0];
@@ -47,56 +50,123 @@ export function Header({
   };
 
   return (
-    <header className="w-full bg-[#fcfaf5]/90 backdrop-blur-md border-b border-[#e6decf] sticky top-0 z-30 transition-all shadow-xs">
-      <div className="max-w-6xl mx-auto px-3 sm:px-6 h-16 flex items-center justify-between gap-2 sm:gap-3">
+    <header className="w-full bg-[#FAF7F0]/85 backdrop-blur-md border-b border-[#E3DBD0]/80 sticky top-0 z-30 transition-all select-none">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
         
-        {/* Left: Brand + Active Notebook Selector Button */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-900 to-amber-700 text-amber-50 flex items-center justify-center shadow-md shadow-amber-900/10 flex-shrink-0">
-            <Feather className="w-5 h-5 stroke-[2.2]" />
+        {/* Left: Brand Identity + Active Notebook Selector */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 pr-2 border-r border-stone-300/60">
+            <span className="w-6 h-6 rounded-md bg-[#2A1D15] text-[#FAF7F0] flex items-center justify-center shadow-xs">
+              <Feather className="w-3.5 h-3.5" />
+            </span>
+            <span className="font-serif text-base font-semibold tracking-tight text-[#2A1D15]">
+              Scriptor
+            </span>
           </div>
 
-          {/* Active Notebook Picker Pill */}
+          {/* Active Notebook Button */}
           <button
             onClick={onOpenNotebooks}
-            className="flex items-center gap-2 px-2.5 sm:px-3 py-1.5 bg-stone-100/90 hover:bg-stone-200/80 border border-stone-300 rounded-xl text-left transition-all group"
+            className="flex items-center gap-2 px-2.5 py-1 rounded-lg hover:bg-stone-200/50 transition-colors group"
             title={t('myNotebooks')}
           >
-            <div className={`w-3.5 h-3.5 rounded-sm ${activeCover.bgClass} border border-black/20 shadow-xs flex-shrink-0`}></div>
-            <div className="flex flex-col">
-              <span className="text-xs font-bold text-stone-800 font-serif group-hover:text-amber-950 transition-colors flex items-center gap-1 truncate max-w-[120px] sm:max-w-[180px]">
-                {notebookTitle}
-                <ChevronDown className="w-3 h-3 text-stone-400 group-hover:text-stone-700 flex-shrink-0" />
-              </span>
-              <span className="text-[10px] text-stone-400 -mt-0.5 truncate max-w-[100px]">
-                {activeCover.name}
-              </span>
-            </div>
+            <span className={`w-3 h-3 rounded-xs ${activeCover.bgClass} shadow-xs border border-black/15`}></span>
+            <span className="text-xs font-serif font-medium text-stone-800 group-hover:text-amber-950 transition-colors">
+              {notebookTitle}
+            </span>
+            <ChevronDown className="w-3 h-3 text-stone-400 group-hover:text-stone-700 transition-colors" />
           </button>
         </div>
 
-        {/* Right: Language Selector + Handwriting Cloner + AI Assistant + Tools */}
-        <div className="flex items-center gap-1.5 sm:gap-2.5">
+        {/* Center: Save state indicator */}
+        <div className="hidden md:flex items-center gap-1.5 text-[11px] font-mono text-stone-400">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600/70"></span>
+          <span>{lastSaved ? 'Kaydedildi' : 'Otomatik Kayıt'}</span>
+        </div>
+
+        {/* Right: View Mode, Cloner, Sound, Copy & Settings */}
+        <div className="flex items-center gap-2">
           
-          {/* Language Selector Dropdown */}
+          {/* Spread Mode Toggle (Single vs Two-Page Spread) */}
+          <button
+            onClick={onToggleViewMode}
+            className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-medium transition-all ${
+              viewMode === 'spread'
+                ? 'bg-amber-900/10 border-amber-800/40 text-amber-950 font-semibold'
+                : 'bg-white/80 border-stone-300/70 text-stone-600 hover:bg-white'
+            }`}
+            title="Çift Sayfa / Tek Sayfa Görünümü"
+          >
+            {viewMode === 'spread' ? <BookOpen className="w-3.5 h-3.5 text-amber-800" /> : <FileText className="w-3.5 h-3.5 text-stone-500" />}
+            <span className="text-[11px]">{viewMode === 'spread' ? 'Açık Defter' : 'Tek Sayfa'}</span>
+          </button>
+
+          {/* Handwriting Cloner Studio */}
+          <button
+            onClick={onOpenCloner}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-medium transition-all ${
+              hasClonedFont
+                ? 'bg-amber-100/70 border-amber-300 text-amber-950'
+                : 'bg-white/80 border-stone-300/70 text-stone-600 hover:bg-white'
+            }`}
+            title={t('cloneSubtitle')}
+          >
+            <Fingerprint className="w-3.5 h-3.5 text-amber-800" />
+            <span className="hidden lg:inline text-[11px]">
+              {hasClonedFont ? t('clonedFontActive') : t('cloneHandwriting')}
+            </span>
+          </button>
+
+          {/* Sound Toggle */}
+          <button
+            onClick={onToggleSound}
+            className={`p-1.5 rounded-lg border transition-all ${
+              soundEnabled
+                ? 'bg-amber-100/60 border-amber-300/80 text-amber-900'
+                : 'bg-white/80 border-stone-300/70 text-stone-400'
+            }`}
+            title={soundEnabled ? "Mürekkep sesini kapat" : "Mürekkep sesini aç"}
+          >
+            {soundEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
+          </button>
+
+          {/* Zen Focus Mode Button */}
+          <button
+            onClick={onToggleZen}
+            className="p-1.5 rounded-lg border border-stone-300/70 bg-white/80 text-stone-600 hover:bg-white hover:text-stone-900 transition-all"
+            title="Zen Odak Modu"
+          >
+            <Maximize2 className="w-3.5 h-3.5" />
+          </button>
+
+          {/* Copy Button */}
+          <button
+            onClick={handleCopy}
+            disabled={!text}
+            title={t('copy')}
+            className={`p-1.5 rounded-lg border transition-all ${
+              copied
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                : 'bg-white/80 border-stone-300/70 text-stone-600 hover:bg-white disabled:opacity-30'
+            }`}
+          >
+            {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+          </button>
+
+          {/* Language Selector */}
           <div className="relative">
             <button
               onClick={() => setLangMenuOpen(!langMenuOpen)}
-              className="flex items-center gap-1 px-2 py-1.5 rounded-xl border border-stone-300/80 bg-white hover:bg-stone-50 text-xs font-medium text-stone-700 shadow-2xs transition-all"
-              title="Dil Seçimi / Change Language"
+              className="px-2 py-1 rounded-lg border border-stone-300/70 bg-white/80 text-xs font-semibold text-stone-700 hover:bg-white transition-all flex items-center gap-1"
             >
-              <span className="text-sm">{currentLangObj.flag}</span>
-              <span className="hidden sm:inline uppercase text-[11px] font-bold">{currentLangObj.code}</span>
-              <ChevronDown className="w-3 h-3 text-stone-400" />
+              <span>{currentLangObj.flag}</span>
+              <span className="uppercase text-[10px]">{currentLangObj.code}</span>
             </button>
 
             {langMenuOpen && (
               <>
-                <div 
-                  className="fixed inset-0 z-40" 
-                  onClick={() => setLangMenuOpen(false)}
-                ></div>
-                <div className="absolute right-0 mt-1.5 w-36 bg-white rounded-xl shadow-xl border border-stone-200 py-1 z-50 animate-in fade-in zoom-in-95 duration-150">
+                <div className="fixed inset-0 z-40" onClick={() => setLangMenuOpen(false)}></div>
+                <div className="absolute right-0 mt-1.5 w-32 bg-white rounded-xl shadow-xl border border-stone-200 py-1 z-50 animate-in fade-in zoom-in-95 duration-100">
                   {languages.map((l) => (
                     <button
                       key={l.code}
@@ -104,15 +174,12 @@ export function Header({
                         changeLanguage(l.code);
                         setLangMenuOpen(false);
                       }}
-                      className={`w-full px-3 py-1.5 text-xs text-left flex items-center justify-between hover:bg-amber-50/70 transition-colors ${
-                        langCode === l.code ? 'font-bold text-amber-900 bg-amber-50' : 'text-stone-700'
+                      className={`w-full px-2.5 py-1.5 text-xs text-left flex items-center justify-between hover:bg-stone-50 ${
+                        langCode === l.code ? 'font-bold text-amber-900 bg-amber-50/70' : 'text-stone-700'
                       }`}
                     >
-                      <div className="flex items-center gap-2">
-                        <span>{l.flag}</span>
-                        <span>{l.name}</span>
-                      </div>
-                      {langCode === l.code && <Check className="w-3.5 h-3.5 text-amber-800" />}
+                      <span>{l.flag} {l.name}</span>
+                      {langCode === l.code && <Check className="w-3 h-3 text-amber-800" />}
                     </button>
                   ))}
                 </div>
@@ -120,84 +187,21 @@ export function Header({
             )}
           </div>
 
-          {/* Handwriting Cloner Button (The Moat Feature) */}
-          <button
-            onClick={onOpenCloner}
-            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-amber-950 bg-amber-100 hover:bg-amber-200 border border-amber-300/80 rounded-xl shadow-xs transition-all active:scale-95 group"
-            title={t('cloneSubtitle')}
-          >
-            <Fingerprint className="w-3.5 h-3.5 text-amber-800 group-hover:scale-110 transition-transform" />
-            <span className="hidden md:inline">
-              {hasClonedFont ? t('clonedFontActive') : t('cloneHandwriting')}
-            </span>
-          </button>
-
-          {/* AI Assistant Button */}
-          <button
-            onClick={onOpenAiAssistant}
-            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-white bg-gradient-to-r from-amber-900 via-amber-800 to-stone-900 hover:from-amber-800 hover:to-stone-800 rounded-xl shadow-xs transition-all active:scale-95 border border-amber-950"
-            title={t('aiModalSubtitle')}
-          >
-            <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
-            <span className="hidden sm:inline">{t('aiInspiration')}</span>
-          </button>
-
-          {/* Stats Badge */}
-          <div className="hidden lg:flex items-center gap-2 px-2.5 py-1 rounded-lg bg-stone-200/50 border border-stone-300/60 text-[11px] font-medium text-stone-600">
-            <span>{words} {t('words')}</span>
-            <span className="text-stone-300">•</span>
-            <span>{chars} {t('chars')}</span>
-          </div>
-
-          {/* Copy Button */}
-          <button
-            onClick={handleCopy}
-            disabled={!text}
-            title={t('copy')}
-            className={`flex items-center gap-1 px-2 sm:px-3 py-1.5 text-xs font-medium rounded-lg border transition-all active:scale-95 ${
-              copied
-                ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                : 'text-stone-700 bg-stone-100 hover:bg-stone-200/80 border-stone-300/70 disabled:opacity-40 disabled:pointer-events-none'
-            }`}
-          >
-            {copied ? (
-              <>
-                <Check className="w-3.5 h-3.5 text-emerald-600" />
-                <span className="hidden sm:inline">{t('copied')}</span>
-              </>
-            ) : (
-              <>
-                <Copy className="w-3.5 h-3.5 text-stone-500" />
-                <span className="hidden sm:inline">{t('copy')}</span>
-              </>
-            )}
-          </button>
-
-          {/* Clear Button */}
-          {text && (
-            <button
-              onClick={onClear}
-              title={t('clear')}
-              className="p-1.5 text-stone-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all border border-transparent hover:border-red-200"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          )}
-
-          {/* Settings Toggle */}
+          {/* Settings Drawer Button */}
           <button
             onClick={onToggleSettings}
-            className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 text-xs font-medium rounded-lg border transition-all ${
+            className={`p-1.5 rounded-lg border transition-all ${
               settingsOpen
-                ? 'bg-amber-900 text-white border-amber-950 shadow-xs'
-                : 'bg-white text-stone-700 hover:bg-stone-50 border-stone-300/80'
+                ? 'bg-stone-900 text-stone-100 border-stone-950 shadow-xs'
+                : 'bg-white/80 text-stone-700 hover:bg-white border-stone-300/70'
             }`}
+            title={t('settings')}
           >
             <SlidersHorizontal className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">{t('settings')}</span>
           </button>
 
         </div>
+
       </div>
     </header>
   );
